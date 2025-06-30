@@ -1,0 +1,91 @@
+/* Sidebar.css */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 220px;
+  height: 100vh;
+  background-color: #000;
+  color: white;
+  padding: 20px;
+  box-sizing: border-box;
+  position: fixed;
+  left: 0;
+  top: 0;
+}
+
+.profile-icon svg {
+  font-size: 28px;
+  color: white;
+}
+
+.owner-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 30px;
+  color: white; /* Explicit default */
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+}
+
+.sidebar-tab {
+  color: white;
+  text-decoration: none;
+  padding: 10px;
+  border-radius: 6px;
+  text-align: center;
+  transition: background 0.3s;
+}
+
+.sidebar-tab:hover {
+  background-color: #333;
+}
+
+.sidebar-tab.active {
+  background-color: #555;
+}
+
+.toggle-btn {
+  background: none;
+  color: white;
+  border: none;
+  font-size: 20px;
+  margin-top: auto;
+  cursor: pointer;
+  padding: 10px;
+}
+
+/* ===== DARK MODE ===== */
+body.dark .sidebar {
+  background-color: white;
+  color: black;
+}
+
+body.dark .profile-icon svg {
+  color: black;
+}
+
+body.dark .owner-title {
+  color: black; /* Fixes disappearing OWNER */
+}
+
+body.dark .sidebar-tab {
+  color: black;
+}
+
+body.dark .sidebar-tab:hover {
+  background-color: #ddd;
+}
+
+body.dark .sidebar-tab.active {
+  background-color: #ccc;
+}
+
+body.dark .toggle-btn {
+  color: black;
+}

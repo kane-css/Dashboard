@@ -1,0 +1,185 @@
+.account-settings {
+  background-color: #f9f9f9;
+  padding: 30px;
+  max-width: 480px;
+  margin: 0 auto;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.account-settings h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.search-bar {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.settings-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.settings-buttons button {
+  padding: 12px;
+  background-color: #000000;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.settings-buttons button:hover {
+  background-color: #333333;
+}
+
+.bottom-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.system-btn {
+  padding: 10px;
+  background-color: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.logout-btn {
+  padding: 10px;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background-color: #dc2626;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-box {
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  max-width: 500px;
+  width: 100%;
+  text-align: left;
+}
+
+.modal-box h2 {
+  margin-bottom: 15px;
+}
+
+.account-list {
+  list-style: none;
+  padding: 0;
+}
+
+.account-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.account-actions button {
+  margin-left: 8px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.account-actions button:first-child {
+  background-color: orange;
+  color: white;
+}
+
+.account-actions button:last-child {
+  background-color: crimson;
+  color: white;
+}
+
+.close-button {
+  margin-top: 16px;
+  background-color: #888;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+/* ===== DARK MODE ===== */
+body.dark .account-settings {
+  background-color: #1e1e1e;
+  color: #f0f0f0;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.05);
+}
+
+body.dark .search-bar {
+  background-color: #333;
+  color: #f0f0f0;
+  border: 1px solid #555;
+}
+
+body.dark .settings-buttons button {
+  background-color: #f0f0f0;
+  color: #000;
+}
+
+body.dark .settings-buttons button:hover {
+  background-color: #e0e0e0;
+}
+
+body.dark .system-btn {
+  background-color: #4b5563;
+}
+
+body.dark .logout-btn {
+  background-color: #dc2626;
+}
+
+body.dark .modal-box {
+  background-color: #2a2a2a;
+  color: #f0f0f0;
+}
+
+body.dark .account-actions button:first-child {
+  background-color: #ff9800;
+}
+
+body.dark .account-actions button:last-child {
+  background-color: #e53935;
+}
+
+body.dark .close-button {
+  background-color: #555;
+  color: white;
+}

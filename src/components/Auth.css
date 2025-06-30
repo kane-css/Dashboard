@@ -1,0 +1,81 @@
+.auth-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #121212;
+  position: relative;
+}
+
+.auth-box {
+  background-color: #1e1e1e;
+  padding: 40px;
+  border-radius: 10px;
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.auth-logo {
+  width: 160px;
+  margin: 0 auto 25px auto;
+  display: block;
+}
+
+.auth-title {
+  color: #ccc;
+  margin-bottom: 20px;
+  font-size: 24px;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border-radius: 6px;
+  border: none;
+  font-size: 15px;
+  background-color: #e6ecff;
+}
+
+.auth-button {
+  width: 100%;
+  padding: 12px;
+  background-color: #000;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.auth-button:hover {
+  background-color: #222;
+}
+
+.switch-auth {
+  margin-top: 15px;
+  color: #aaa;
+}
+
+.auth-link {
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* 🌓 Dark Mode Toggle Button at Bottom Left */
+.toggle-btn {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background-color: #1e1e1e;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  padding: 10px 12px;
+  font-size: 18px;
+  cursor: pointer;
+}

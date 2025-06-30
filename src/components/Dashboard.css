@@ -1,0 +1,33 @@
+.dashboard-container {
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+  color: #000;
+  min-height: 80vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dashboard-title {
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+.dashboard-chart {
+  background-color: #f4f4f4;
+  padding: 40px;
+  border-radius: 8px;
+  text-align: center;
+  color: #555;
+}
+
+/* Dark mode styles */
+body.dark .dashboard-container {
+  background-color: #1f1f1f;
+  color: #f5f5f5;
+}
+
+body.dark .dashboard-chart {
+  background-color: #2c2c2c;
+  color: #ccc;
+}

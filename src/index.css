@@ -1,0 +1,377 @@
+/* General Styles */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f4f4f4;
+  transition: all 0.3s ease;
+}
+
+.container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  padding: 40px;
+  background-color: #fff;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 220px;
+  background-color: #1a1a1a;
+  color: white;
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profile-icon {
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.owner-title {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.sidebar-tab {
+  background: none;
+  border: none;
+  color: white;
+  padding: 12px 20px;
+  width: 100%;
+  text-align: left;
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.sidebar-tab:hover {
+  background-color: #333;
+}
+
+.sidebar-tab.active {
+  background-color: #444;
+  font-weight: bold;
+  border-left: 5px solid #ffffff;
+  color: #ffffff;
+}
+
+/* Toggle Button */
+.toggle-btn {
+  padding: 6px 12px;
+  font-size: 14px;
+  background-color: var(--button-bg);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+:root {
+  --bg-color: #ffffff;
+  --text-color: #000000;
+  --input-bg: #f1f1f1;
+  --button-bg: #ffffff;
+}
+
+body.dark {
+  --bg-color: #121212;
+  --text-color: #ffffff;
+  --input-bg: #2c2c2c;
+  --button-bg: #333333;
+}
+
+body.dark {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+input,
+button {
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  border: 1px solid #ccc;
+}
+.auth-container {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-box {
+  background-color: var(--input-bg);
+  padding: 30px;
+  border-radius: 12px;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.auth-input {
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background-color: var(--input-bg);
+  color: var(--text-color);
+}
+
+.auth-button {
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  background-color: #000000;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.auth-button:hover {
+  background-color: #222;
+}
+
+.auth-title {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.auth-logo {
+  width: 150px;
+  margin-bottom: 20px;
+}
+
+.auth-link {
+  color: var(--text-color);
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+  .dashboard-container {
+  padding: 30px;
+  color: var(--text-color);
+}
+
+.dashboard-title {
+  font-size: 26px;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.overview-grid {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+
+.overview-card {
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  padding: 20px;
+  border-radius: 12px;
+  width: 220px;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.overview-card:hover {
+  background-color: var(--button-bg);
+  color: white;
+}
+
+.dashboard-chart-placeholder {
+  background-color: var(--input-bg);
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+  color: var(--text-color);
+}
+.inventory-container {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  padding: 30px;
+  border-radius: 12px;
+}
+
+.inventory-title {
+  font-size: 22px;
+  margin-bottom: 20px;
+}
+
+.inventory-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.inventory-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--input-bg);
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.inventory-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.inv-btn {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.inv-btn.view {
+  background-color: #60a5fa;
+  color: white;
+}
+
+.inv-btn.edit {
+  background-color: #34d399;
+  color: white;
+}
+
+.inv-btn.delete {
+  background-color: #ef4444;
+  color: white;
+}
+.customized-container {
+  padding: 30px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  border-radius: 12px;
+}
+
+.customized-title {
+  font-size: 22px;
+  margin-bottom: 20px;
+}
+
+.customized-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.customized-card {
+  background-color: var(--input-bg);
+  padding: 15px;
+  border-radius: 10px;
+  width: 200px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.customized-image {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+
+.customized-name {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.customized-desc {
+  font-size: 14px;
+  color: #888;
+}
+.edit-profile-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.edit-box {
+  background-color: var(--input-bg);
+  padding: 30px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
+}
+
+.edit-box input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background-color: #e5e7eb;
+}
+
+.profile-pic-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profile-pic {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+
+.upload-btn {
+  background-color: #000000;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+/* Layout Wrapper */
+.layout-wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar already has width: 220px, so we push content next to it */
+.layout-content {
+  flex-grow: 1;
+  padding: 30px;
+  margin-left: 220px; /* same as sidebar width */
+  box-sizing: border-box;
+}

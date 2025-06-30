@@ -1,0 +1,83 @@
+.custom-container {
+  padding: 30px;
+}
+
+.custom-filter-box {
+  background: #ddd;
+  padding: 20px;
+  border-radius: 20px;
+  display: flex;
+  gap: 30px;
+  margin-bottom: 20px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+}
+
+.filter-group label {
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.filter-group select {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  background-color: white;
+}
+
+.custom-list-box {
+  background: #ddd;
+  border-radius: 20px;
+  padding: 20px;
+}
+
+.custom-part-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+}
+
+.part-index {
+  width: 25px;
+  text-align: right;
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+.part-name {
+  font-weight: bold;
+  font-size: 16px;
+}
+/* ===== DARK MODE ===== */
+body.dark .custom-container {
+  background-color: #1a1a1a;
+  color: #f0f0f0;
+}
+
+body.dark .custom-filter-box {
+  background-color: #2a2a2a;
+}
+
+body.dark .filter-group label {
+  color: #f0f0f0;
+}
+
+body.dark .filter-group select {
+  background-color: #3a3a3a;
+  color: #f0f0f0;
+  border: 1px solid #666;
+}
+
+body.dark .custom-list-box {
+  background-color: #2a2a2a;
+  color: #f0f0f0;
+}
+
+body.dark .custom-part-row {
+  border-bottom: 1px solid #444;
+}
