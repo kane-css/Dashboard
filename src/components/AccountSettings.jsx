@@ -46,7 +46,6 @@ export default function AccountSettings({ onLogout }) {
   return (
     <div className="account-settings">
       <h1>Account Settings</h1>
-      <input className="search-bar" type="text" placeholder="Search..." />
 
       <div className="settings-buttons">
         <button>View Details</button>
