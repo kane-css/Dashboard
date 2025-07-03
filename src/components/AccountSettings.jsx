@@ -50,9 +50,7 @@ export default function AccountSettings({ onLogout }) {
 
       <div className="settings-buttons">
         <button>View Details</button>
-        <button>Edit Shop Information</button>
         <button onClick={() => setShowModal(true)}>Suspend / Reactivate Access</button>
-        <button>Delete Owner Account</button>
       </div>
 
       <div className="bottom-buttons">
