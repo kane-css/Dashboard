@@ -7,11 +7,7 @@ export default function CustomizedParts() {
   const [unit, setUnit] = useState('Aerox V2');
 
   const parts = [
-    {
-      id: 1,
-      name: 'ÖHLINS 395mm',
-    },
-    // Add more parts here if needed
+ 
   ];
 
   return (
