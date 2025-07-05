@@ -61,7 +61,7 @@
 .edit-box button:hover {
   background-color: #333333;
 }
-/* ===== DARK MODE ===== */
+/* DARK MODE */
 body.dark .edit-container {
   background-color: #1a1a1a;
   color: #f0f0f0;

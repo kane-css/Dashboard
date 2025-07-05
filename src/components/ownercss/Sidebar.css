@@ -60,7 +60,7 @@
   padding: 10px;
 }
 
-/* ===== DARK MODE ===== */
+/* DARK MODE */
 body.dark .sidebar {
   background-color: white;
   color: black;

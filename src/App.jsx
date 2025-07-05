@@ -72,12 +72,12 @@ export default function App() {
 
   return (
     <Routes>
-      {/* Auth Routes */}
+      {}
       <Route path="/" element={<Navigate to="/signin" />} />
       <Route path="/signin" element={<SignIn onLogin={handleLogin} />} />
       <Route path="/signup" element={<SignUp />} />
 
-      {/* Owner Routes */}
+      { }
       <Route
         path="/dashboard"
         element={isLoggedIn && userRole === 'user'
@@ -109,7 +109,7 @@ export default function App() {
           : <Navigate to="/signin" />}
       />
 
-      {/* Admin Routes */}
+      { }
       <Route
         path="/admin-dashboard"
         element={isLoggedIn && userRole === 'admin'
