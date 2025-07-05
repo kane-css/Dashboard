@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import './EditProfile.css';
-import defaultProfile from '../assets/modifikasi-logo.png'; // Replace with your default image path
+import '../ownercss/EditProfile.css';
+import defaultProfile from "../../assets/modifikasi-logo.png";
 
 export default function EditProfile() {
   const [profilePic, setProfilePic] = useState(defaultProfile);

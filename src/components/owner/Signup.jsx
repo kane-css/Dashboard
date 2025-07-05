@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import modifikasiLogo from '../assets/modifikasi-logo.png';
-import './Auth.css';
+import modifikasiLogo from '../../assets/modifikasi-logo.png';
+import '../ownercss/Auth.css';
 
 export default function SignUp() {
   const [username, setUsername] = useState('');

@@ -23,7 +23,7 @@
   font-size: 18px;
   font-weight: bold;
   margin-bottom: 30px;
-  color: white; /* Explicit default */
+  color: white;
 }
 
 .sidebar-nav {
@@ -71,7 +71,7 @@ body.dark .profile-icon svg {
 }
 
 body.dark .owner-title {
-  color: black; /* Fixes disappearing OWNER */
+  color: black;
 }
 
 body.dark .sidebar-tab {

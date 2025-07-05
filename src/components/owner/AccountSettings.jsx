@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import './AccountSettings.css';
+import '../ownercss/AccountSettings.css';
 
 export default function AccountSettings({ onLogout }) {
   const [showModal, setShowModal] = useState(false);

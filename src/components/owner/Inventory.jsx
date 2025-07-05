@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import './Inventory.css';
+import '../ownercss/Inventory.css';
 
 export default function Inventory() {
   const [search, setSearch] = useState('');

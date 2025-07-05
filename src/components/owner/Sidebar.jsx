@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
 import { NavLink } from 'react-router-dom';
-import './Sidebar.css';
+import '../ownercss/Sidebar.css';
 
 
 export default function Sidebar() {

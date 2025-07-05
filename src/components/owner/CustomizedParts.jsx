@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './CustomizedParts.css';
+import '../ownercss/CustomizedParts.css';
 
 export default function CustomizedParts() {
   const [dateFilter, setDateFilter] = useState('Last 3 days');
