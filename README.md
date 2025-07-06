@@ -1,3 +1,4 @@
 -conchas!!! yung user at pass ng admin side is user:admin pass:adminpass
 -More on buttons functionality nalang kulang.
+-admin side webpage lacking in ui
 -add recommendation or siuggest needs polishing here
