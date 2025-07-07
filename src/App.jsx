@@ -3,7 +3,7 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
 // Owner Components
 import SignIn from './components/owner/SignIn';
-import SignUp from './components/owner/SignUp';
+import SignUp from './components/owner/Signups';
 import Dashboard from './components/owner/Dashboard';
 import Inventory from './components/owner/Inventory';
 import CustomizedParts from './components/owner/CustomizedParts';
@@ -17,6 +17,7 @@ import AdminManageShop from './components/admin/AdminManageShop';
 import AdminManageParts from './components/admin/AdminManageParts';
 import AdminTopCustomized from './components/admin/AdminTopCustomized';
 import AdminSidebar from './components/admin/AdminSidebar';
+
 
 
 
@@ -80,31 +81,31 @@ export default function App() {
       { }
       <Route
         path="/dashboard"
-        element={isLoggedIn && userRole === 'user'
-          ? renderWithSidebar(Dashboard)
-          : <Navigate to="/signin" />}
+        element={isLoggedIn && userRole === 'owner' // <-- This must check for 'owner'
+    ? renderWithSidebar(Dashboard)
+    : <Navigate to="/signin" />}
       />
       <Route
         path="/inventory"
-        element={isLoggedIn && userRole === 'user'
+        element={isLoggedIn && userRole === 'owner'
           ? renderWithSidebar(Inventory)
           : <Navigate to="/signin" />}
       />
       <Route
         path="/customized"
-        element={isLoggedIn && userRole === 'user'
+        element={isLoggedIn && userRole === 'owner'
           ? renderWithSidebar(CustomizedParts)
           : <Navigate to="/signin" />}
       />
       <Route
         path="/profile"
-        element={isLoggedIn && userRole === 'user'
+        element={isLoggedIn && userRole === 'owner'
           ? renderWithSidebar(EditProfile)
           : <Navigate to="/signin" />}
       />
       <Route
         path="/settings"
-        element={isLoggedIn && userRole === 'user'
+        element={isLoggedIn && userRole === 'owner'
           ? renderWithSidebar(AccountSettings)
           : <Navigate to="/signin" />}
       />
