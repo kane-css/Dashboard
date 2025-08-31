@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { supabase } from './supabase'; // import your supabase client
 
 // Owner Components
 import SignIn from './components/owner/SignIn';
@@ -18,26 +19,46 @@ import AdminManageParts from './components/admin/AdminManageParts';
 import AdminTopCustomized from './components/admin/AdminTopCustomized';
 import AdminSidebar from './components/admin/AdminSidebar';
 
-
-
-
 export default function App() {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  // ✅ Check Supabase session on load
   useEffect(() => {
-    const stored = localStorage.getItem('loggedInUser');
-    try {
-      const parsed = JSON.parse(stored);
-      if (parsed?.role) {
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (session) {
         setIsLoggedIn(true);
-        setUserRole(parsed.role);
+        // You can store role in user_metadata during sign up
+        setUserRole(session.user.user_metadata.role || 'owner');
+      } else {
+        setIsLoggedIn(false);
+        setUserRole(null);
       }
-    } catch (err) {
-      console.error('Invalid JSON in loggedInUser:', err);
-      localStorage.removeItem('loggedInUser');
-    }
+      setLoading(false);
+    };
+
+    getSession();
+
+    // ✅ Listen for auth state changes (login/logout/refresh)
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (session) {
+          setIsLoggedIn(true);
+          setUserRole(session.user.user_metadata.role || 'owner');
+        } else {
+          setIsLoggedIn(false);
+          setUserRole(null);
+        }
+      }
+    );
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
   const handleLogin = (role) => {
@@ -46,8 +67,8 @@ export default function App() {
     navigate(role === 'admin' ? '/admin-dashboard' : '/dashboard');
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('loggedInUser');
+  const handleLogout = async () => {
+    await supabase.auth.signOut(); // ✅ logs out from supabase
     setIsLoggedIn(false);
     setUserRole(null);
     navigate('/signin');
@@ -71,19 +92,20 @@ export default function App() {
     </div>
   );
 
+  if (loading) return <div>Loading...</div>;
+
   return (
     <Routes>
-      {}
       <Route path="/" element={<Navigate to="/signin" />} />
       <Route path="/signin" element={<SignIn onLogin={handleLogin} />} />
       <Route path="/signup" element={<SignUp />} />
 
-      { }
+      {/* Owner routes */}
       <Route
         path="/dashboard"
-        element={isLoggedIn && userRole === 'owner' // <-- This must check for 'owner'
-    ? renderWithSidebar(Dashboard)
-    : <Navigate to="/signin" />}
+        element={isLoggedIn && userRole === 'owner'
+          ? renderWithSidebar(Dashboard)
+          : <Navigate to="/signin" />}
       />
       <Route
         path="/inventory"
@@ -110,7 +132,7 @@ export default function App() {
           : <Navigate to="/signin" />}
       />
 
-      { }
+      {/* Admin routes */}
       <Route
         path="/admin-dashboard"
         element={isLoggedIn && userRole === 'admin'
