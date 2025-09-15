@@ -3,15 +3,36 @@ import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import modifikasiLogo from '../../assets/modifikasi-logo.png';
 import '../ownercss/Auth.css';
-import { supabase } from '../../supabase'; // Make sure path is correct
+import { supabase } from '../../supabase';
 
-// STEP 1: Add the 'onLogin' prop back into the function definition
 export default function SignIn({ onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
+  // Simple email regex for validation
+  const validateEmail = (email) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
+
+  const handleLogin = async (event) => {
+    if (event) event.preventDefault();
+
+    // Client-side validation
+    if (!email.trim()) {
+      return Swal.fire('Validation Error', 'Email is required.', 'warning');
+    }
+    if (!validateEmail(email)) {
+      return Swal.fire('Validation Error', 'Please enter a valid email address.', 'warning');
+    }
+    if (!password) {
+      return Swal.fire('Validation Error', 'Password is required.', 'warning');
+    }
+    if (password.length < 6) {
+      return Swal.fire('Validation Error', 'Password must be at least 6 characters.', 'warning');
+    }
+
     // 1. Authenticate with Supabase
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email: email,
@@ -22,10 +43,10 @@ export default function SignIn({ onLogin }) {
       return Swal.fire('Log In Failed', authError.message, 'error');
     }
 
-    // 2. Fetch the user's profile
+    // 2. Fetch the profile
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('role, status, username')
+      .select('status, role')
       .eq('id', authData.user.id)
       .single();
 
@@ -33,56 +54,54 @@ export default function SignIn({ onLogin }) {
       return Swal.fire('Profile Not Found', "Your user profile doesn't exist.", 'error');
     }
 
-    // 3. Check status
+    // 3. Status checks
     if (profile.status === 'pending') {
       await supabase.auth.signOut();
       return Swal.fire('Account Pending', 'Your account is still awaiting approval.', 'info');
     }
+
     if (profile.status === 'suspended') {
       await supabase.auth.signOut();
       return Swal.fire('Account Suspended', 'This account is suspended.', 'warning');
     }
 
-    // --- STEP 2: THE CRUCIAL FIX ---
-    // After all checks pass, call the onLogin function from App.jsx
-    // This tells App.jsx that the user is logged in and what their role is.
+    // 4. SUCCESS - tell App.jsx the role
     onLogin(profile.role);
-    
-    // Now the navigation will work because App.jsx has the correct state.
-    // The handleLogin in App.jsx also navigates, so this part is technically redundant,
-    // but it's okay to keep it for immediate feedback.
-    if (profile.role === 'owner') {
-      navigate('/dashboard');
-    } else {
-      navigate('/admin-dashboard');
-    }
+
+    // 5. Navigate based on role
+    const redirectPath = profile.role === 'owner' ? '/dashboard' : '/admin-dashboard';
+    navigate(redirectPath);
   };
 
   return (
     <div className="auth-container">
-      <div className="auth-box">
+      <form className="auth-box" onSubmit={handleLogin}>
         <img src={modifikasiLogo} alt="Logo" className="auth-logo" />
         <h2 className="auth-title">Sign In</h2>
         <input
           type="email"
           className="auth-input"
           placeholder="Email"
+          value={email}
           onChange={e => setEmail(e.target.value)}
+          required
         />
         <input
           type="password"
           className="auth-input"
           placeholder="Password"
+          value={password}
           onChange={e => setPassword(e.target.value)}
+          required
         />
-        <button className="auth-button" onClick={handleLogin}>Login</button>
+        <button type="submit" className="auth-button">Login</button>
         <p className="switch-auth">
-          Don’t have an account?{' '}
+          Don't have an account?{' '}
           <span className="auth-link" onClick={() => navigate('/signup')}>
             Sign Up
           </span>
         </p>
-      </div>
+      </form>
       <button
         className="toggle-btn"
         onClick={() => document.body.classList.toggle('dark')}

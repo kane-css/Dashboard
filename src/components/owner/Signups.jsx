@@ -1,4 +1,3 @@
-// src/components/owner/SignUp.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
@@ -7,71 +6,110 @@ import '../ownercss/Auth.css';
 import { supabase } from '../../supabase';
 
 export default function SignUp() {
-  const [fullName, setFullName] = useState(''); // Added full_name
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  const handleSignUp = async () => {
-  // 1. Create the user in Supabase Authentication
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email: email,
-    password: password,
-    options: {
-      data: {
-        full_name: fullName, 
-      }
-    }
-  });
+  // Simple email regex for validation
+  const validateEmail = (email) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
 
-  if (authError) {
-    return Swal.fire('Sign Up Failed', authError.message, 'error');
-  }
-  
-  // THE FIX IS HERE:
-  // Show the success message and WAIT for the user to click "OK".
-  Swal.fire({
-    title: 'Success!',
-    text: 'Your account application has been submitted and is awaiting approval.',
-    icon: 'info',
-    confirmButtonColor: '#000000', // Optional: Keep your button style consistent
-  }).then((result) => {
-    // This code runs ONLY AFTER the user closes the alert.
-    if (result.isConfirmed) {
-      navigate('/signin');
+  const handleSignUp = async (event) => {
+    if (event) event.preventDefault();
+
+    // Client-side validation
+    if (!fullName.trim()) {
+      return Swal.fire('Validation Error', 'Please enter your full name.', 'warning');
     }
-  });
-};
+    if (!email.trim()) {
+      return Swal.fire('Validation Error', 'Please enter your email.', 'warning');
+    }
+    if (!validateEmail(email)) {
+      return Swal.fire('Validation Error', 'Please enter a valid email address.', 'warning');
+    }
+    if (!password) {
+      return Swal.fire('Validation Error', 'Please enter your password.', 'warning');
+    }
+    if (password.length < 6) {
+      return Swal.fire('Validation Error', 'Password must be at least 6 characters long.', 'warning');
+    }
+
+    try {
+      // 1. Create the user in Supabase Authentication
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+        },
+      });
+
+      if (authError) {
+        console.error('Auth error:', authError);
+        return Swal.fire('Sign Up Failed', authError.message, 'error');
+      }
+
+      console.log('Sign up successful:', authData);
+
+      // 2. IMMEDIATELY sign out the user to prevent auto-redirect
+      await supabase.auth.signOut();
+
+      // 3. Show success message and navigate to signin
+      await Swal.fire({
+        title: 'Success!',
+        text: 'Your account application has been submitted and is awaiting approval.',
+        icon: 'info',
+        confirmButtonColor: '#000000',
+      });
+
+      // 4. Navigate to signin page
+      navigate('/signin');
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      Swal.fire('Error', 'An unexpected error occurred. Please try again.', 'error');
+    }
+  };
 
   return (
     <div className="auth-container">
-      <div className="auth-box">
+      <form className="auth-box" onSubmit={handleSignUp}>
         <img src={modifikasiLogo} alt="Logo" className="auth-logo" />
         <h2 className="auth-title">Sign Up</h2>
         <input
           type="text"
           className="auth-input"
           placeholder="Full Name"
+          value={fullName}
           onChange={(e) => setFullName(e.target.value)}
+          required
         />
         <input
           type="email"
           className="auth-input"
           placeholder="Email"
+          value={email}
           onChange={(e) => setEmail(e.target.value)}
+          required
         />
         <input
           type="password"
           className="auth-input"
           placeholder="Password"
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
         />
-        <button className="auth-button" onClick={handleSignUp}>Create Account</button>
+        <button type="submit" className="auth-button">Create Account</button>
         <p className="switch-auth">
           Already have an account?{' '}
           <span className="auth-link" onClick={() => navigate('/signin')}>Sign In</span>
         </p>
-      </div>
+      </form>
     </div>
   );
 }

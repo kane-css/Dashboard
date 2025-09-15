@@ -1,17 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import '../ownercss/Inventory.css';
+import { supabase } from '../../supabase';
 
 export default function Inventory() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All');
   const [unit, setUnit] = useState('All');
 
-  const [products, setProducts] = useState(() => {
-    const saved = localStorage.getItem('products');
-    return saved ? JSON.parse(saved) : [];
-  });
-
+  const [products, setProducts] = useState([]);
   const [selected, setSelected] = useState([]);
   const [showModal, setShowModal] = useState(false);
 
@@ -19,30 +16,52 @@ export default function Inventory() {
     name: '',
     availability: '',
     price: '',
-    modified: '',
     category: '',
     unit: '',
   });
 
+  // Fetch products from Supabase on mount and when filters change
   useEffect(() => {
-    localStorage.setItem('products', JSON.stringify(products));
-  }, [products]);
+    fetchProducts();
+  }, []);
 
-  const handleCheckbox = (index) => {
-    if (selected.includes(index)) {
-      setSelected(selected.filter((i) => i !== index));
+  const fetchProducts = async () => {
+    const { data, error } = await supabase.from('inventory_parts').select('*');
+
+    if (error) {
+      console.error('Error fetching products:', error);
+      Swal.fire('Error', 'Failed to fetch products', 'error');
     } else {
-      setSelected([...selected, index]);
+      setProducts(data);
     }
   };
 
-  const handleDelete = () => {
-    const filtered = products.filter((_, index) => !selected.includes(index));
-    setProducts(filtered);
-    setSelected([]);
+  const handleCheckbox = (id) => {
+    if (selected.includes(id)) {
+      setSelected(selected.filter((i) => i !== id));
+    } else {
+      setSelected([...selected, id]);
+    }
   };
 
-  const handleSaveProduct = () => {
+  const handleDelete = async () => {
+    if (selected.length === 0) {
+      Swal.fire('No selection', 'Please select products to delete', 'warning');
+      return;
+    }
+
+    const { error } = await supabase.from('inventory_parts').delete().in('id', selected);
+
+    if (error) {
+      Swal.fire('Error', 'Failed to delete products', 'error');
+    } else {
+      Swal.fire('Deleted!', 'Selected products have been deleted.', 'success');
+      setSelected([]);
+      fetchProducts();
+    }
+  };
+
+  const handleSaveProduct = async () => {
     const { name, availability, price, category, unit } = newProduct;
 
     if (!name || !availability || !price || !category || !unit) {
@@ -54,32 +73,45 @@ export default function Inventory() {
       return;
     }
 
-    const today = new Date().toISOString().split('T')[0];
-    const product = {
-      ...newProduct,
-      modified: today,
-    };
+    const priceNumber = parseFloat(price);
+    if (isNaN(priceNumber)) {
+      Swal.fire('Invalid price', 'Please enter a valid number for price.', 'warning');
+      return;
+    }
 
-    const updatedProducts = [...products, product];
-    setProducts(updatedProducts);
+    const today = new Date().toISOString();
 
-    setNewProduct({
-      name: '',
-      availability: '',
-      price: '',
-      modified: '',
-      category: '',
-      unit: '',
-    });
+    const { data, error } = await supabase.from('inventory_parts').insert([
+      {
+        name,
+        availability,
+        price: priceNumber,
+        category,
+        unit,
+        modified: today,
+      },
+    ]);
 
-    setShowModal(false);
-
-    Swal.fire({
-      icon: 'success',
-      title: 'Product added successfully!',
-      showConfirmButton: false,
-      timer: 1500,
-    });
+    if (error) {
+      console.error('Insert error:', error);
+      Swal.fire('Error', `Failed to add product: ${error.message}`, 'error');
+    } else {
+      Swal.fire({
+        icon: 'success',
+        title: 'Product added successfully!',
+        showConfirmButton: false,
+        timer: 1500,
+      });
+      setNewProduct({
+        name: '',
+        availability: '',
+        price: '',
+        category: '',
+        unit: '',
+      });
+      setShowModal(false);
+      fetchProducts();
+    }
   };
 
   // Filtered display based on search, category, and unit
@@ -136,13 +168,13 @@ export default function Inventory() {
             <div className="product-modified">Modified</div>
           </div>
 
-          {filteredProducts.map((product, index) => (
-            <div className="inventory-row" key={index}>
+          {filteredProducts.map((product) => (
+            <div className="inventory-row" key={product.id}>
               <div className="checkbox-col">
                 <input
                   type="checkbox"
-                  checked={selected.includes(index)}
-                  onChange={() => handleCheckbox(index)}
+                  checked={selected.includes(product.id)}
+                  onChange={() => handleCheckbox(product.id)}
                 />
               </div>
               <div className="product-name">{product.name}</div>

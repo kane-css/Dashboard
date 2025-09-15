@@ -16,6 +16,22 @@ export default function EditProfile() {
     }
   };
 
+  const handleShopNameChange = (e) => {
+    setShopName(e.target.value);
+  };
+
+  const handleOwnerNameChange = (e) => {
+    setOwnerName(e.target.value);
+  };
+
+  const handleContactChange = (e) => {
+    setContact(e.target.value);
+  };
+
+  const handleLocationChange = (e) => {
+    setLocation(e.target.value);
+  };
+
   const handleUpdate = () => {
     alert('Profile updated!');
   };
@@ -31,25 +47,25 @@ export default function EditProfile() {
           type="text"
           placeholder="Shop Name"
           value={shopName}
-          onChange={(e) => setShopName(e.target.value)}
+          onChange={handleShopNameChange}
         />
         <input
           type="text"
           placeholder="Owner Name"
           value={ownerName}
-          onChange={(e) => setOwnerName(e.target.value)}
+          onChange={handleOwnerNameChange}
         />
         <input
           type="text"
           placeholder="Contact"
           value={contact}
-          onChange={(e) => setContact(e.target.value)}
+          onChange={handleContactChange}
         />
         <input
           type="text"
           placeholder="Location"
           value={location}
-          onChange={(e) => setLocation(e.target.value)}
+          onChange={handleLocationChange}
         />
         <button onClick={handleUpdate}>Update Profile</button>
       </div>

@@ -2,7 +2,7 @@ import React from "react";
 import AdminSidebar from "./AdminSidebar";
 import "../admincss/AdminDashboard.css";
 
-export default function AdminDashboard({ onLogout }) {
+export default function AdminDashboard() {
   return (
     <div style={{ padding: "2rem" }}>
       <h1>Admin Manage Parts</h1>
