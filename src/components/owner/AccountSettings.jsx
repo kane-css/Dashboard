@@ -2,25 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import '../ownercss/AccountSettings.css';
+import { supabase } from '../../supabase';
 
-// STEP 1: Import Supabase and hooks
-import { supabase } from '../../supabase'; // Make sure this path is correct
-
-// STEP 2: Remove the 'onLogout' prop, it's no longer needed
 export default function AccountSettings() {
   const [showModal, setShowModal] = useState(false);
   const [users, setUsers] = useState([]);
   const navigate = useNavigate();
 
-  // STEP 3: Fetch REAL users from the Supabase 'profiles' table
   useEffect(() => {
     const fetchUsers = async () => {
-      // Fetches all profiles except the current logged-in owner
       const { data: { user: ownerUser } } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .neq('id', ownerUser.id); // .neq() means 'not equal to'
+        .neq('id', ownerUser.id);
 
       if (error) {
         console.error("Error fetching users:", error);
@@ -28,14 +23,12 @@ export default function AccountSettings() {
         setUsers(data);
       }
     };
-    
-    // Only open the modal if we have users to show
+
     if (showModal) {
       fetchUsers();
     }
-  }, [showModal]); // Re-fetch users every time the modal is opened
+  }, [showModal]);
 
-  // STEP 4: Update user status IN SUPABASE
   const toggleStatus = async (userId, currentStatus) => {
     const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
     const { error } = await supabase
@@ -46,28 +39,70 @@ export default function AccountSettings() {
     if (error) {
       Swal.fire('Error', error.message, 'error');
     } else {
-      // Update the user in the local state for an instant UI change
-      setUsers(users.map(user => 
+      setUsers(users.map(user =>
         user.id === userId ? { ...user, status: newStatus } : user
       ));
     }
   };
 
-  // STEP 5: Delete user profile IN SUPABASE
   const deleteUser = async (userId) => {
-    // Note: This only deletes the profile. The auth user remains.
-    // This is generally safer.
     const { error } = await supabase.from('profiles').delete().eq('id', userId);
 
     if (error) {
       Swal.fire('Error', error.message, 'error');
     } else {
-      // Remove the user from the local state
       setUsers(users.filter(user => user.id !== userId));
     }
   };
 
-  // STEP 6: The new self-contained logout function
+  const approveAsAdmin = async (userId) => {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ role: 'admin' })
+      .eq('id', userId);
+
+    if (error) {
+      Swal.fire('Error', error.message, 'error');
+    } else {
+      Swal.fire('Approved!', 'User has been approved as Admin.', 'success');
+      setUsers(users.map(user =>
+        user.id === userId ? { ...user, role: 'admin' } : user
+      ));
+    }
+  };
+
+  const approveAsOwner = async (userId) => {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ role: 'owner' })
+      .eq('id', userId);
+
+    if (error) {
+      Swal.fire('Error', error.message, 'error');
+    } else {
+      Swal.fire('Approved!', 'User has been approved as Owner.', 'success');
+      setUsers(users.map(user =>
+        user.id === userId ? { ...user, role: 'owner' } : user
+      ));
+    }
+  };
+
+  const denyAccount = async (userId) => {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ status: 'denied' })
+      .eq('id', userId);
+
+    if (error) {
+      Swal.fire('Error', error.message, 'error');
+    } else {
+      Swal.fire('Denied!', 'User account has been denied.', 'info');
+      setUsers(users.map(user =>
+        user.id === userId ? { ...user, status: 'denied' } : user
+      ));
+    }
+  };
+
   const handleLogoutConfirm = () => {
     Swal.fire({
       title: 'Are you sure?',
@@ -80,7 +115,7 @@ export default function AccountSettings() {
     }).then(async (result) => {
       if (result.isConfirmed) {
         await supabase.auth.signOut();
-        navigate('/signin'); // Navigate to signin after logout
+        navigate('/signin');
       }
     });
   };
@@ -107,13 +142,20 @@ export default function AccountSettings() {
               {users.map((user) => (
                 <li key={user.id} className="account-item">
                   <div>
-                    <strong>{user.username}</strong> — {user.status}
+                    <strong>{user.username}</strong> — {user.status} {user.role && `(${user.role})`}
                   </div>
                   <div className="account-actions">
-                    <button onClick={() => toggleStatus(user.id, user.status)}>
-                      {user.status === 'active' ? 'Suspend' : 'Reactivate'}
-                    </button>
-                    <button onClick={() => deleteUser(user.id)}>Delete</button>
+                    <div className="approve-buttons">
+                      <button className="approve admin" onClick={() => approveAsAdmin(user.id)}>Approve as Admin</button>
+                      <button className="approve owner" onClick={() => approveAsOwner(user.id)}>Approve as Owner</button>
+                    </div>
+                    <div className="manage-buttons">
+                      <button className="deny" onClick={() => denyAccount(user.id)}>Deny</button>
+                      <button className="status" onClick={() => toggleStatus(user.id, user.status)}>
+                        {user.status === 'active' ? 'Suspend' : 'Reactivate'}
+                      </button>
+                      <button className="delete" onClick={() => deleteUser(user.id)}>Delete</button>
+                    </div>
                   </div>
                 </li>
               ))}

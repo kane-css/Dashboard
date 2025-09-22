@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import { supabase } from './supabase'; // import your supabase client
+import { supabase } from './supabase';
 
 // Owner Components
 import SignIn from './components/owner/SignIn';
@@ -24,15 +24,23 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [darkMode, setDarkMode] = useState(false); // ✅ dark mode state
+
+  // ✅ Sync dark mode with <body>
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add("dark");
+    } else {
+      document.body.classList.remove("dark");
+    }
+  }, [darkMode]);
 
   // ✅ Check Supabase session on load
   useEffect(() => {
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-
       if (session) {
         setIsLoggedIn(true);
-        // You can store role in user_metadata during sign up
         setUserRole(session.user.user_metadata.role || 'owner');
       } else {
         setIsLoggedIn(false);
@@ -40,10 +48,8 @@ export default function App() {
       }
       setLoading(false);
     };
-
     getSession();
 
-    // ✅ Listen for auth state changes (login/logout/refresh)
     const { data: listener } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         if (session) {
@@ -55,10 +61,7 @@ export default function App() {
         }
       }
     );
-
-    return () => {
-      listener.subscription.unsubscribe();
-    };
+    return () => listener.subscription.unsubscribe();
   }, []);
 
   const handleLogin = (role) => {
@@ -68,31 +71,29 @@ export default function App() {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut(); // ✅ logs out from supabase
+    await supabase.auth.signOut();
     setIsLoggedIn(false);
     setUserRole(null);
     navigate('/signin');
   };
 
-  const renderWithSidebar = (Component) => (
+  // ✅ Generic wrapper for sidebars (with dark mode)
+  const renderWithLayout = (Component, SidebarComponent) => (
     <div className="layout-wrapper">
-      <Sidebar />
+      <SidebarComponent darkMode={darkMode} setDarkMode={setDarkMode} />
       <div className="layout-content">
         <Component onLogout={handleLogout} />
       </div>
     </div>
   );
 
-  const renderWithAdminSidebar = (Component) => (
-    <div className="layout-wrapper">
-      <AdminSidebar />
-      <div className="layout-content">
-        <Component onLogout={handleLogout} />
+  if (loading) {
+    return (
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+        <h2>Loading...</h2>
       </div>
-    </div>
-  );
-
-  if (loading) return <div>Loading...</div>;
+    );
+  }
 
   return (
     <Routes>
@@ -101,62 +102,17 @@ export default function App() {
       <Route path="/signup" element={<SignUp />} />
 
       {/* Owner routes */}
-      <Route
-        path="/dashboard"
-        element={isLoggedIn && userRole === 'owner'
-          ? renderWithSidebar(Dashboard)
-          : <Navigate to="/signin" />}
-      />
-      <Route
-        path="/inventory"
-        element={isLoggedIn && userRole === 'owner'
-          ? renderWithSidebar(Inventory)
-          : <Navigate to="/signin" />}
-      />
-      <Route
-        path="/customized"
-        element={isLoggedIn && userRole === 'owner'
-          ? renderWithSidebar(CustomizedParts)
-          : <Navigate to="/signin" />}
-      />
-      <Route
-        path="/profile"
-        element={isLoggedIn && userRole === 'owner'
-          ? renderWithSidebar(EditProfile)
-          : <Navigate to="/signin" />}
-      />
-      <Route
-        path="/settings"
-        element={isLoggedIn && userRole === 'owner'
-          ? renderWithSidebar(AccountSettings)
-          : <Navigate to="/signin" />}
-      />
+      <Route path="/dashboard" element={isLoggedIn && userRole === 'owner' ? renderWithLayout(Dashboard, Sidebar) : <Navigate to="/signin" />} />
+      <Route path="/inventory" element={isLoggedIn && userRole === 'owner' ? renderWithLayout(Inventory, Sidebar) : <Navigate to="/signin" />} />
+      <Route path="/customized" element={isLoggedIn && userRole === 'owner' ? renderWithLayout(CustomizedParts, Sidebar) : <Navigate to="/signin" />} />
+      <Route path="/profile" element={isLoggedIn && userRole === 'owner' ? renderWithLayout(EditProfile, Sidebar) : <Navigate to="/signin" />} />
+      <Route path="/settings" element={isLoggedIn && userRole === 'owner' ? renderWithLayout(AccountSettings, Sidebar) : <Navigate to="/signin" />} />
 
       {/* Admin routes */}
-      <Route
-        path="/admin-dashboard"
-        element={isLoggedIn && userRole === 'admin'
-          ? renderWithAdminSidebar(AdminDashboard)
-          : <Navigate to="/signin" />}
-      />
-      <Route
-        path="/admin/manage-shop"
-        element={isLoggedIn && userRole === 'admin'
-          ? renderWithAdminSidebar(AdminManageShop)
-          : <Navigate to="/signin" />}
-      />
-      <Route
-        path="/admin/manage-parts"
-        element={isLoggedIn && userRole === 'admin'
-          ? renderWithAdminSidebar(AdminManageParts)
-          : <Navigate to="/signin" />}
-      />
-      <Route
-        path="/admin/top-customized"
-        element={isLoggedIn && userRole === 'admin'
-          ? renderWithAdminSidebar(AdminTopCustomized)
-          : <Navigate to="/signin" />}
-      />
+      <Route path="/admin-dashboard" element={isLoggedIn && userRole === 'admin' ? renderWithLayout(AdminDashboard, AdminSidebar) : <Navigate to="/signin" />} />
+      <Route path="/admin/manage-shop" element={isLoggedIn && userRole === 'admin' ? renderWithLayout(AdminManageShop, AdminSidebar) : <Navigate to="/signin" />} />
+      <Route path="/admin/manage-parts" element={isLoggedIn && userRole === 'admin' ? renderWithLayout(AdminManageParts, AdminSidebar) : <Navigate to="/signin" />} />
+      <Route path="/admin/top-customized" element={isLoggedIn && userRole === 'admin' ? renderWithLayout(AdminTopCustomized, AdminSidebar) : <Navigate to="/signin" />} />
     </Routes>
   );
 }

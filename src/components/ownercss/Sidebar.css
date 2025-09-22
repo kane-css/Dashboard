@@ -5,87 +5,103 @@
   align-items: center;
   width: 220px;
   height: 100vh;
-  background-color: #000;
-  color: white;
-  padding: 20px;
+  background-color: var(--sidebar-bg, #ffffff); /* fallback to white */
+  color: var(--sidebar-text, #000000);          /* fallback to black */
+  padding: 20px 0; /* match admin spacing */
   box-sizing: border-box;
   position: fixed;
   left: 0;
   top: 0;
+  transition: background-color 0.3s, color 0.3s;
 }
 
+/* ✅ Profile Section */
 .profile-icon svg {
   font-size: 28px;
-  color: white;
+  color: inherit;
 }
 
 .owner-title {
   font-size: 18px;
   font-weight: bold;
-  margin-bottom: 30px;
-  color: white;
+  margin-bottom: 25px; /* match admin */
+  color: inherit;
 }
 
+/* ✅ Navigation */
 .sidebar-nav {
   display: flex;
   flex-direction: column;
   gap: 15px;
   width: 100%;
+  flex-grow: 1; /* push toggle button to bottom */
+  padding: 0 15px;
 }
 
+/* ✅ Button style same as admin sidebar */
 .sidebar-tab {
-  color: white;
-  text-decoration: none;
-  padding: 10px;
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 10px 16px;
   border-radius: 6px;
-  text-align: center;
-  transition: background 0.3s;
+  width: 100%;
+  text-align: left;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 .sidebar-tab:hover {
-  background-color: #333;
+  background-color: var(--sidebar-hover);
 }
 
 .sidebar-tab.active {
-  background-color: #555;
+  background-color: var(--sidebar-active);
+  font-weight: bold;
 }
 
+/* ✅ Dark mode toggle button styled like Admin */
 .toggle-btn {
-  background: none;
-  color: white;
+  margin-top: auto; /* stays at bottom */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 42px;
+  height: 42px;
   border: none;
-  font-size: 20px;
-  margin-top: auto;
+  border-radius: 50%;
+  background-color: #e0e0e0; /* light mode bg */
   cursor: pointer;
-  padding: 10px;
+  font-size: 20px;
+  color: #111111; /* ✅ DARKER ICON in light mode */
+  transition: background-color 0.3s, color 0.3s;
+  align-self: center; /* center horizontally */
 }
 
-/* DARK MODE */
-body.dark .sidebar {
-  background-color: white;
-  color: black;
-}
-
-body.dark .profile-icon svg {
-  color: black;
-}
-
-body.dark .owner-title {
-  color: black;
-}
-
-body.dark .sidebar-tab {
-  color: black;
-}
-
-body.dark .sidebar-tab:hover {
-  background-color: #ddd;
-}
-
-body.dark .sidebar-tab.active {
-  background-color: #ccc;
+.toggle-btn:hover {
+  background-color: #d5d5d5;
 }
 
 body.dark .toggle-btn {
-  color: black;
+  background-color: #444444; /* dark mode bg */
+  color: #ffffff; /* white icon in dark mode */
+}
+
+/* THEME VARIABLES */
+:root {
+  --sidebar-bg: #ffffff;       /* Light mode */
+  --sidebar-text: #000000;
+  --sidebar-hover: #f5f5f5;
+  --sidebar-active: #eaeaea;
+}
+
+body.dark {
+  --sidebar-bg: #000000;       /* Dark mode */
+  --sidebar-text: #ffffff;
+  --sidebar-hover: #313131;
+  --sidebar-active: #444444;
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import modifikasiLogo from '../../assets/modifikasi-logo.png';
@@ -11,11 +11,30 @@ export default function SignUp() {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
+  // Redirect if already logged in
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        // user already logged in → fetch profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', data.session.user.id)
+          .single();
+
+        if (profile) {
+          const redirectPath =
+            profile.role === 'owner' ? '/dashboard' : '/admin-dashboard';
+          navigate(redirectPath, { replace: true });
+        }
+      }
+    };
+    checkSession();
+  }, [navigate]);
+
   // Simple email regex for validation
-  const validateEmail = (email) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-  };
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleSignUp = async (event) => {
     if (event) event.preventDefault();
@@ -56,10 +75,10 @@ export default function SignUp() {
 
       console.log('Sign up successful:', authData);
 
-      // 2. IMMEDIATELY sign out the user to prevent auto-redirect
+      // 2. Immediately sign out to wait for approval
       await supabase.auth.signOut();
 
-      // 3. Show success message and navigate to signin
+      // 3. Show success message
       await Swal.fire({
         title: 'Success!',
         text: 'Your account application has been submitted and is awaiting approval.',
@@ -67,8 +86,8 @@ export default function SignUp() {
         confirmButtonColor: '#000000',
       });
 
-      // 4. Navigate to signin page
-      navigate('/signin');
+      // 4. Navigate to signin
+      navigate('/signin', { replace: true });
     } catch (error) {
       console.error('Unexpected error:', error);
       Swal.fire('Error', 'An unexpected error occurred. Please try again.', 'error');

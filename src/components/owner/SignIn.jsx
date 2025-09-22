@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import modifikasiLogo from '../../assets/modifikasi-logo.png';
@@ -10,21 +10,43 @@ export default function SignIn({ onLogin }) {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  // Simple email regex for validation
-  const validateEmail = (email) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-  };
+  // Redirect if already logged in
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', data.session.user.id)
+          .single();
+
+        if (profile) {
+          const redirectPath =
+            profile.role === 'owner' ? '/dashboard' : '/admin-dashboard';
+          navigate(redirectPath, { replace: true });
+
+          // ✅ Block back button after redirect
+          window.history.pushState(null, '', window.location.href);
+          window.addEventListener('popstate', () => {
+            window.history.pushState(null, '', window.location.href);
+          });
+        }
+      }
+    };
+    checkSession();
+  }, [navigate]);
+
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleLogin = async (event) => {
     if (event) event.preventDefault();
 
-    // Client-side validation
     if (!email.trim()) {
       return Swal.fire('Validation Error', 'Email is required.', 'warning');
     }
     if (!validateEmail(email)) {
-      return Swal.fire('Validation Error', 'Please enter a valid email address.', 'warning');
+      return Swal.fire('Validation Error', 'Please enter a valid email.', 'warning');
     }
     if (!password) {
       return Swal.fire('Validation Error', 'Password is required.', 'warning');
@@ -33,17 +55,15 @@ export default function SignIn({ onLogin }) {
       return Swal.fire('Validation Error', 'Password must be at least 6 characters.', 'warning');
     }
 
-    // 1. Authenticate with Supabase
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: password,
+      email,
+      password,
     });
 
     if (authError) {
       return Swal.fire('Log In Failed', authError.message, 'error');
     }
 
-    // 2. Fetch the profile
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('status, role')
@@ -54,7 +74,6 @@ export default function SignIn({ onLogin }) {
       return Swal.fire('Profile Not Found', "Your user profile doesn't exist.", 'error');
     }
 
-    // 3. Status checks
     if (profile.status === 'pending') {
       await supabase.auth.signOut();
       return Swal.fire('Account Pending', 'Your account is still awaiting approval.', 'info');
@@ -65,12 +84,16 @@ export default function SignIn({ onLogin }) {
       return Swal.fire('Account Suspended', 'This account is suspended.', 'warning');
     }
 
-    // 4. SUCCESS - tell App.jsx the role
     onLogin(profile.role);
 
-    // 5. Navigate based on role
     const redirectPath = profile.role === 'owner' ? '/dashboard' : '/admin-dashboard';
-    navigate(redirectPath);
+    navigate(redirectPath, { replace: true });
+
+    // ✅ Block back button after successful login
+    window.history.pushState(null, '', window.location.href);
+    window.addEventListener('popstate', () => {
+      window.history.pushState(null, '', window.location.href);
+    });
   };
 
   return (
@@ -97,7 +120,7 @@ export default function SignIn({ onLogin }) {
         <button type="submit" className="auth-button">Login</button>
         <p className="switch-auth">
           Don't have an account?{' '}
-          <span className="auth-link" onClick={() => navigate('/signup')}>
+          <span className="auth-link" onClick={() => navigate('/signup', { replace: true })}>
             Sign Up
           </span>
         </p>

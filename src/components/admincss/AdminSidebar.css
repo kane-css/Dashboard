@@ -1,8 +1,8 @@
 .admin-sidebar {
   width: 230px;
   height: 100vh;
-  background-color: #000000;
-  color: #fff;
+  background-color: #ffffff; /* light mode default */
+  color: #000;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -10,56 +10,126 @@
   left: 0;
   top: 0;
   padding: 20px 0;
+  overflow-y: auto;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* ✅ Dark mode sidebar */
+.admin-sidebar.dark {
+  background-color: #000000;
+  color: #fff;
+}
+
+/* ✅ Profile section at top */
+.profile-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.profile-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+  color: inherit;
 }
 
 .admin-logo {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: bold;
   text-align: center;
-  margin-bottom: 30px;
+  color: inherit;
 }
 
+/* ✅ Navigation */
 .admin-nav {
   display: flex;
   flex-direction: column;
   gap: 15px;
   width: 100%;
-  align-items: center;
-  flex-grow: 1;
-  justify-content: center; 
+  flex-grow: 1; /* pushes toggle button down */
+  padding: 0 15px;
 }
 
 .admin-nav button {
   background: none;
   border: none;
-  color: #fff;
-  font-size: 16px;
+  color: inherit;
+  font-size: 14px;
   display: flex;
   align-items: center;
   gap: 10px;
   cursor: pointer;
-  padding: 10px 20px;
-  border-radius: 5px;
+  padding: 10px 16px;
+  border-radius: 6px;
   width: 100%;
   text-align: left;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 .admin-nav button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.admin-sidebar.dark .admin-nav button:hover {
   background-color: #313131;
 }
 
-.admin-logout {
-  margin-bottom: 20px;
-  background: none;
-  border: none;
-  color: #ff4d4d;
-  font-size: 16px;
+.admin-nav button.active {
+  background-color: #eaeaea;
+  font-weight: bold;
+}
+
+.admin-sidebar.dark .admin-nav button.active {
+  background-color: #444;
+}
+
+/* ✅ Dark mode toggle button at bottom */
+.dark-toggle-wrapper {
+  margin-top: auto;
+  margin-bottom: 20px; /* lift it up a bit */
   display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  padding: 10px 20px;
+  justify-content: center;
   width: 100%;
-  text-align: left;
+}
+
+.dark-toggle {
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  background-color: #e0e0e0;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.admin-sidebar.dark .dark-toggle {
+  background-color: #444444;
+  color: #fff;
+}
+
+/* ✅ GLOBAL STYLES for page content */
+body {
+  background-color: #f5f5f5; /* light mode default */
+  color: #000;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark {
+  background-color: #1e1e1e; /* dark mode background */
+  color: #ffffff;
+}
+
+/* Make sure content beside sidebar adjusts */
+.layout-wrapper {
+  display: flex;
+}
+
+.layout-content {
+  flex: 1;
+  margin-left: 230px; /* match sidebar width */
+  padding: 20px;
+  background-color: inherit; /* follows body */
+  color: inherit;
+  min-height: 100vh;
+  transition: background-color 0.3s, color 0.3s;
 }
