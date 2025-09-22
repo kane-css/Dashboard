@@ -1,39 +1,54 @@
-import React, { useState } from 'react';
-import '../ownercss/EditProfile.css';
+import React, { useState } from "react";
+import "../ownercss/EditProfile.css";
 import defaultProfile from "../../assets/modifikasi-logo.png";
+import { supabase } from "../../supabase";
+import { updateProfile, uploadProfileImage } from "../../services/profileService";
 
 export default function EditProfile() {
   const [profilePic, setProfilePic] = useState(defaultProfile);
-  const [shopName, setShopName] = useState('');
-  const [ownerName, setOwnerName] = useState('');
-  const [contact, setContact] = useState('');
-  const [location, setLocation] = useState('');
+  const [profileFile, setProfileFile] = useState(null);
+  const [shopName, setShopName] = useState("");
+  const [ownerName, setOwnerName] = useState("");
+  const [contact, setContact] = useState("");
+  const [location, setLocation] = useState("");
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setProfilePic(URL.createObjectURL(file));
+      setProfileFile(file); 
+      setProfilePic(URL.createObjectURL(file)); // preview only
     }
   };
 
-  const handleShopNameChange = (e) => {
-    setShopName(e.target.value);
-  };
+  const handleUpdate = async () => {
+    try {
+      // get logged in user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("No logged in user");
 
-  const handleOwnerNameChange = (e) => {
-    setOwnerName(e.target.value);
-  };
+      // upload profile image if selected
+      let uploadedUrl = null;
+      if (profileFile) {
+        uploadedUrl = await uploadProfileImage(profileFile, user.id);
+      }
 
-  const handleContactChange = (e) => {
-    setContact(e.target.value);
-  };
+      // update profiles table
+      const updates = {
+        shop_name: shopName,
+        owner_name: ownerName,
+        contact: contact,
+        location: location,
+        profile_pic: uploadedUrl || profilePic
+      };
 
-  const handleLocationChange = (e) => {
-    setLocation(e.target.value);
-  };
+      const data = await updateProfile(user.id, updates);
 
-  const handleUpdate = () => {
-    alert('Profile updated!');
+      alert("Profile updated successfully!");
+      console.log("Updated data:", data);
+    } catch (err) {
+      console.error("Update failed:", err.message);
+      alert("Error updating profile: " + err.message);
+    }
   };
 
   return (
@@ -47,25 +62,25 @@ export default function EditProfile() {
           type="text"
           placeholder="Shop Name"
           value={shopName}
-          onChange={handleShopNameChange}
+          onChange={(e) => setShopName(e.target.value)}
         />
         <input
           type="text"
           placeholder="Owner Name"
           value={ownerName}
-          onChange={handleOwnerNameChange}
+          onChange={(e) => setOwnerName(e.target.value)}
         />
         <input
           type="text"
           placeholder="Contact"
           value={contact}
-          onChange={handleContactChange}
+          onChange={(e) => setContact(e.target.value)}
         />
         <input
           type="text"
           placeholder="Location"
           value={location}
-          onChange={handleLocationChange}
+          onChange={(e) => setLocation(e.target.value)}
         />
         <button onClick={handleUpdate}>Update Profile</button>
       </div>
