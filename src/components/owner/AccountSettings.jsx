@@ -124,42 +124,45 @@ export default function AccountSettings() {
     <div className="account-settings">
       <h1>Account Settings</h1>
 
+      {/* Main Buttons */}
       <div className="settings-buttons">
-        <button>View Details</button>
-        <button onClick={() => setShowModal(true)}>Manage User Access</button>
+        <button className="btn-view">View Details</button>
+        <button className="btn-manage" onClick={() => setShowModal(true)}>Manage User Access</button>
+        <button className="btn-system">System Settings</button>
+        <button className="btn-logout" onClick={handleLogoutConfirm}>Log Out</button>
       </div>
 
-      <div className="bottom-buttons">
-        <button className="system-btn">System Settings</button>
-        <button className="logout-btn" onClick={handleLogoutConfirm}>Log Out</button>
-      </div>
-
+      {/* Modal */}
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-box">
             <h2>Manage User Access</h2>
-            <ul className="account-list">
-              {users.map((user) => (
-                <li key={user.id} className="account-item">
-                  <div>
-                    <strong>{user.username}</strong> — {user.status} {user.role && `(${user.role})`}
-                  </div>
-                  <div className="account-actions">
-                    <div className="approve-buttons">
-                      <button className="approve admin" onClick={() => approveAsAdmin(user.id)}>Approve as Admin</button>
-                      <button className="approve owner" onClick={() => approveAsOwner(user.id)}>Approve as Owner</button>
+
+            <div className="manage-user-access">
+              <ul>
+                {users.map((user) => (
+                  <li key={user.id}>
+                    <div className="user-info">
+                      <strong>{user.username}</strong> — 
+                      <span>{user.role || "N/A"}</span> — 
+                      <span className={`status-badge ${user.status}`}>
+                        {user.status}
+                      </span>
                     </div>
-                    <div className="manage-buttons">
-                      <button className="deny" onClick={() => denyAccount(user.id)}>Deny</button>
-                      <button className="status" onClick={() => toggleStatus(user.id, user.status)}>
-                        {user.status === 'active' ? 'Suspend' : 'Reactivate'}
+                    <div className="actions">
+                      <button className="btn-admin" onClick={() => approveAsAdmin(user.id)}>Approve as Admin</button>
+                      <button className="btn-owner" onClick={() => approveAsOwner(user.id)}>Approve as Owner</button>
+                      <button className="btn-deny" onClick={() => denyAccount(user.id)}>Deny</button>
+                      <button className="btn-status" onClick={() => toggleStatus(user.id, user.status)}>
+                        {user.status === "active" ? "Suspend" : "Reactivate"}
                       </button>
-                      <button className="delete" onClick={() => deleteUser(user.id)}>Delete</button>
+                      <button className="btn-delete" onClick={() => deleteUser(user.id)}>Delete</button>
                     </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
             <button className="close-button" onClick={() => setShowModal(false)}>Close</button>
           </div>
         </div>

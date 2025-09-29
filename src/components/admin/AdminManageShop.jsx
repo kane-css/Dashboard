@@ -43,21 +43,7 @@ export default function AdminManageShop() {
   return (
     <div className="admin-manage-shop-container">
       <div className="admin-card">
-        <div className="admin-search-wrapper">
-          <input type="text" placeholder="Search" className="admin-search" />
-          <button className="close-btn">×</button>
-        </div>
-
         <div className="admin-button-group">
-          <button>
-            <FaUserCircle /> View Details <span>›</span>
-          </button>
-          <button>
-            <FaEdit /> Edit Shop Information <span>›</span>
-          </button>
-          <button>
-            <FaLink /> Suspend/Reactivate Access <span>›</span>
-          </button>
           <button>
             <FaTrash /> Delete Owner Account <span>›</span>
           </button>

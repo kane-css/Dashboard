@@ -154,9 +154,6 @@ export default function Inventory() {
             <option>Nmax</option>
           </select>
           <button className="add-btn" onClick={() => setShowModal(true)}>+ Add Products</button>
-          <button className="gray-btn">⬇ Export</button>
-          <button className="gray-btn">📁 Import from CSV</button>
-          <button className="gray-btn" onClick={handleDelete}>🗑️ Delete</button>
         </div>
 
         <div className="inventory-table">

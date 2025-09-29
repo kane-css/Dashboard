@@ -53,6 +53,7 @@
   width: 100%;
   text-align: left;
   transition: background-color 0.2s, color 0.2s;
+  text-decoration: none;   /* ✅ remove underline */
 }
 
 .sidebar-tab:hover {
@@ -62,6 +63,7 @@
 .sidebar-tab.active {
   background-color: var(--sidebar-active);
   font-weight: bold;
+  text-decoration: none;   /* ✅ make sure active has no underline */
 }
 
 /* ✅ Dark mode toggle button styled like Admin */
