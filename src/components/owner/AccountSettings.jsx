@@ -126,9 +126,7 @@ export default function AccountSettings() {
 
       {/* Main Buttons */}
       <div className="settings-buttons">
-        <button className="btn-view">View Details</button>
         <button className="btn-manage" onClick={() => setShowModal(true)}>Manage User Access</button>
-        <button className="btn-system">System Settings</button>
         <button className="btn-logout" onClick={handleLogoutConfirm}>Log Out</button>
       </div>
 

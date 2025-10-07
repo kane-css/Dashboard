@@ -1,23 +1,13 @@
 import React from "react";
-import {
-  FaUserCircle,
-  FaEdit,
-  FaLink,
-  FaTrash,
-  FaSignOutAlt,
-} from "react-icons/fa";
+import { FaSignOutAlt } from "react-icons/fa";
 import "../admincss/AdminManageShop.css";
-
-// STEP 1: Import tools
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../supabase";
-import Swal from "sweetalert2"; // ✅ Import SweetAlert2
+import Swal from "sweetalert2";
 
-// STEP 2: Component
 export default function AdminManageShop() {
   const navigate = useNavigate();
 
-  // STEP 3: Logout handler with confirmation
   const handleLogout = () => {
     Swal.fire({
       title: "Are you sure?",
@@ -30,7 +20,6 @@ export default function AdminManageShop() {
     }).then(async (result) => {
       if (result.isConfirmed) {
         const { error } = await supabase.auth.signOut();
-
         if (error) {
           Swal.fire("Error", error.message, "error");
         } else {
@@ -44,15 +33,12 @@ export default function AdminManageShop() {
     <div className="admin-manage-shop-container">
       <div className="admin-card">
         <div className="admin-button-group">
-          <button>
-            <FaTrash /> Delete Owner Account <span>›</span>
-          </button>
+          {/* Add your other buttons here */}
         </div>
 
-        <button className="system-btn">System Settings</button>
-
         <button className="logout-btn" onClick={handleLogout}>
-          Log out <FaSignOutAlt />
+          <span>Log out</span>
+          <FaSignOutAlt />
         </button>
       </div>
     </div>

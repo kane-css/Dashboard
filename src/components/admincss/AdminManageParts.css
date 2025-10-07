@@ -1,0 +1,186 @@
+.inventory-container {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  background: #f9fafb;
+  min-height: 100vh;
+}
+
+.inventory-card {
+  background: #fff;
+  width: 95%;
+  max-width: 1200px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 20px;
+}
+
+.inventory-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.inventory-search {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  outline: none;
+}
+
+.inventory-dropdown {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  outline: none;
+}
+
+.add-btn {
+  background: #2563eb;
+  color: #fff;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.add-btn:hover {
+  background: #1d4ed8;
+}
+
+/* TABLE */
+.inventory-table {
+  width: 100%;
+}
+
+.inventory-header,
+.inventory-row {
+  display: grid;
+  grid-template-columns: 1.2fr 2fr 1fr 1fr 1fr 1.5fr;
+  align-items: center;
+  padding: 10px 15px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.inventory-header {
+  background: #f3f4f6;
+  font-weight: 600;
+  color: #111827;
+  border-radius: 8px 8px 0 0;
+}
+
+.inventory-row {
+  transition: background 0.2s;
+}
+
+.inventory-row:hover {
+  background: #f9fafb;
+}
+
+/* COLUMNS */
+.product-brand {
+  padding-right: 15px;
+}
+
+.product-name {
+  padding-left: 15px;
+}
+
+.product-price,
+.product-available,
+.product-modified {
+  text-align: center;
+}
+
+.product-action {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* BUTTONS */
+.sold-btn,
+.add-stock-btn {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.sold-btn {
+  background-color: #dc2626;
+  color: white;
+}
+
+.sold-btn:hover {
+  background-color: #b91c1c;
+}
+
+.add-stock-btn {
+  background-color: #16a34a;
+  color: white;
+}
+
+.add-stock-btn:hover {
+  background-color: #15803d;
+}
+
+/* MODAL */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-box {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-box input,
+.modal-box select {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.cancel-btn {
+  background: #9ca3af;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.save-btn {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}

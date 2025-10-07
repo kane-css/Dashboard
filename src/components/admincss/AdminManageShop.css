@@ -1,50 +1,45 @@
 /* 🌞 Light Mode */
 .admin-manage-shop-container {
   display: flex;
-  justify-content: center;
-  align-items: center;
+  justify-content: center; /* <-- Center horizontally */
+  align-items: center; /* <-- Center vertically */
   padding: 2rem;
   background: #f9f9f9;
   min-height: 100vh;
   color: #333;
+  position: relative;
+  box-sizing: border-box;
 }
 
+/* ✅ Centered Card */
 .admin-card {
+  position: relative; /* <-- Remove fixed positioning */
   background: #fff;
   border-radius: 12px;
   padding: 2rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  width: 400px;
+  width: 420px;
+  z-index: 10;
 }
 
-.admin-search-wrapper {
-  display: flex;
-  align-items: center;
-  margin-bottom: 1rem;
+.admin-title {
+  text-align: center;
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
 }
 
-.admin-search {
-  flex: 1;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-}
-
-.close-btn {
-  margin-left: 0.5rem;
-  background: transparent;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-}
-
+/* ✅ Button Group */
 .admin-button-group {
   display: flex;
   flex-direction: column;
-  margin: 1rem 0;
+  align-items: stretch;
+  gap: 1rem;
+  margin: 1.5rem 0;
 }
 
 .admin-button-group button {
+  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -52,7 +47,6 @@
   border: none;
   padding: 0.8rem 1rem;
   border-radius: 8px;
-  margin-bottom: 0.8rem;
   cursor: pointer;
   font-size: 1rem;
   transition: 0.3s;
@@ -62,35 +56,31 @@
   background: #ddd;
 }
 
-.system-btn,
+/* ✅ Logout Button (Centered Content) */
 .logout-btn {
-  display: block;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
   width: 100%;
   padding: 0.8rem;
   border: none;
   border-radius: 8px;
-  margin-top: 0.8rem;
   font-size: 1rem;
   cursor: pointer;
   transition: 0.3s;
-}
-
-.system-btn {
-  background: #007bff;
-  color: #fff;
-}
-
-.system-btn:hover {
-  background: #0056b3;
-}
-
-.logout-btn {
   background: #dc3545;
   color: #fff;
+  text-align: center;
 }
 
 .logout-btn:hover {
   background: #a71d2a;
+}
+
+.logout-btn svg {
+  font-size: 1.1rem;
+  vertical-align: middle;
 }
 
 /* 🌙 Dark Mode */
@@ -104,16 +94,6 @@
   border: 1px solid #444;
 }
 
-.dark .admin-search {
-  background: #333;
-  border: 1px solid #555;
-  color: #f1f1f1;
-}
-
-.dark .close-btn {
-  color: #f1f1f1;
-}
-
 .dark .admin-button-group button {
   background: #3a3a3a;
   color: #f1f1f1;
@@ -123,18 +103,8 @@
   background: #555;
 }
 
-.dark .system-btn {
-  background: #0056b3;
-  color: #fff;
-}
-
-.dark .system-btn:hover {
-  background: #007bff;
-}
-
 .dark .logout-btn {
   background: #a71d2a;
-  color: #fff;
 }
 
 .dark .logout-btn:hover {
