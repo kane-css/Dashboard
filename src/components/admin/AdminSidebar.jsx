@@ -28,14 +28,14 @@ export default function AdminSidebar({ darkMode, setDarkMode }) {
         <button onClick={() => navigate("/admin-dashboard")}>
           <FaTachometerAlt className="nav-icon" /> <span>Overview</span>
         </button>
-        <button onClick={() => navigate("/admin/manage-shop")}>
-          <FaStore className="nav-icon" /> <span>Manage Shop</span>
-        </button>
         <button onClick={() => navigate("/admin/manage-parts")}>
           <FaCogs className="nav-icon" /> <span>Manage Parts</span>
         </button>
         <button onClick={() => navigate("/admin/top-customized")}>
           <FaCrown className="nav-icon" /> <span>Top Customized</span>
+        </button>
+        <button onClick={() => navigate("/admin/manage-shop")}>
+          <FaStore className="nav-icon" /> <span>Manage Shop</span>
         </button>
       </nav>
 
