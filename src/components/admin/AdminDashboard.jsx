@@ -20,7 +20,7 @@ export default function AdminDashboard() {
     const fetchPopularParts = async () => {
       const { data, error } = await supabase
         .from("inventory_parts")
-        .select("id, name, part_views")
+        .select("id, model, part_views")
         .order("part_views", { ascending: false })
         .limit(10);
 
@@ -51,7 +51,7 @@ export default function AdminDashboard() {
                 margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
+                <XAxis dataKey="model" />
                 <YAxis />
                 <Tooltip />
                 <Bar dataKey="part_views" fill="#8884d8" />

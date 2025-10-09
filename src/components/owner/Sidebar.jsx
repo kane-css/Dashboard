@@ -1,51 +1,57 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUser } from "@fortawesome/free-solid-svg-icons";
-import { NavLink } from "react-router-dom";
-import { FaMoon, FaSun } from "react-icons/fa"; // ✅ Import sun/moon icons
+import React, { useEffect } from "react";
+import {FaTachometerAlt,FaBoxes,FaCrown,FaUser,FaCog,FaMoon,FaSun,} from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import "../ownercss/Sidebar.css";
 
 export default function Sidebar({ darkMode, setDarkMode }) {
-  const tabs = [
-    { label: "Dashboard Overview", path: "/dashboard" },
-    { label: "View Inventory & Edit", path: "/inventory" },
-    { label: "Top Customized Parts", path: "/customized" },
-    { label: "Edit Shop Profile", path: "/profile" },
-    { label: "Account Settings", path: "/settings" },
-  ];
+  const navigate = useNavigate();
+
+  // ✅ Add/remove "dark" class on <body>
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add("dark");
+    } else {
+      document.body.classList.remove("dark");
+    }
+  }, [darkMode]);
 
   return (
-    <aside className={`sidebar ${darkMode ? "dark" : ""}`}>
-      <div className="profile-icon">
-        <FontAwesomeIcon icon={faUser} className="user-icon" />
+    <div className={`owner-sidebar ${darkMode ? "dark" : ""}`}>
+      {/* ✅ Top Section */}
+      <div className="profile-section">
+        <FaUser className="profile-icon" />
+        <h2 className="owner-logo">Owner</h2>
       </div>
-      <h2 className="owner-title">OWNER</h2>
 
-      <nav className="sidebar-nav">
-        {tabs.map((tab) => (
-          <NavLink
-            key={tab.path}
-            to={tab.path}
-            className={({ isActive }) =>
-              `sidebar-tab ${isActive ? "active" : ""}`
-            }
-          >
-            {tab.label}
-          </NavLink>
-        ))}
+      {/* ✅ Nav Section */}
+      <nav className="owner-nav">
+        <button onClick={() => navigate("/dashboard")}>
+          <FaTachometerAlt className="nav-icon" />{" "}
+          <span>Dashboard Overview</span>
+        </button>
+        <button onClick={() => navigate("/inventory")}>
+          <FaBoxes className="nav-icon" /> <span>View Inventory & Edit</span>
+        </button>
+        <button onClick={() => navigate("/customized")}>
+          <FaCrown className="nav-icon" /> <span>Top Customized Parts</span>
+        </button>
+        <button onClick={() => navigate("/profile")}>
+          <FaCog className="nav-icon" /> <span>Edit Shop Profile</span>
+        </button>
+        <button onClick={() => navigate("/settings")}>
+          <FaCog className="nav-icon" /> <span>Account Settings</span>
+        </button>
       </nav>
 
-      {/* ✅ Dark mode toggle with icon always visible */}
-      <button
-  className="toggle-btn"
-  onClick={() => setDarkMode(!darkMode)}
->
-  {darkMode ? (
-    <FaMoon size={20} color="#ffffff" />   // white moon in dark mode
-  ) : (
-    <FaSun size={20} color="#000000" />    // black sun in light mode
-  )}
-</button>
-
-    </aside>
+      {/* ✅ Dark Mode Button */}
+      <div className="dark-toggle-wrapper">
+        <button
+          className="dark-toggle"
+          onClick={() => setDarkMode(!darkMode)}
+        >
+          {darkMode ? <FaSun /> : <FaMoon />}
+        </button>
+      </div>
+    </div>
   );
 }
