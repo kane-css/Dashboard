@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import '../admincss/AdminManageParts.css';
 import { supabase } from '../../supabase';
-import { Pencil, X } from 'lucide-react';
+import { X } from 'lucide-react';
 
 export default function AdminManageParts() {
   const [search, setSearch] = useState('');
@@ -15,7 +15,7 @@ export default function AdminManageParts() {
 
   const [newProduct, setNewProduct] = useState({
     brand: '',
-    name: '',
+    model: '',
     availability: '',
     price: '',
     category: '',
@@ -40,7 +40,7 @@ export default function AdminManageParts() {
       Swal.fire('Error', 'Failed to fetch products', 'error');
     } else {
       const sorted = data.sort((a, b) =>
-        a.name.localeCompare(b.name, 'en', { sensitivity: 'base' })
+        a.model.localeCompare(b.model, 'en', { sensitivity: 'base' })
       );
       setProducts(sorted);
     }
@@ -94,7 +94,7 @@ export default function AdminManageParts() {
   const handleAddProduct = async () => {
     if (
       !newProduct.brand ||
-      !newProduct.name ||
+      !newProduct.model ||
       !newProduct.category ||
       !newProduct.unit ||
       !newProduct.availability ||
@@ -111,7 +111,7 @@ export default function AdminManageParts() {
         .from('inventory_parts')
         .update({
           brand: newProduct.brand,
-          name: newProduct.name,
+          model: newProduct.model,
           category: newProduct.category,
           unit: newProduct.unit,
           availability: parseInt(newProduct.availability),
@@ -128,7 +128,7 @@ export default function AdminManageParts() {
         setEditProduct(null);
         setNewProduct({
           brand: '',
-          name: '',
+          model: '',
           availability: '',
           price: '',
           category: '',
@@ -141,7 +141,7 @@ export default function AdminManageParts() {
       const { error } = await supabase.from('inventory_parts').insert([
         {
           brand: newProduct.brand,
-          name: newProduct.name,
+          model: newProduct.model,
           category: newProduct.category,
           unit: newProduct.unit,
           availability: parseInt(newProduct.availability),
@@ -157,7 +157,7 @@ export default function AdminManageParts() {
         setShowModal(false);
         setNewProduct({
           brand: '',
-          name: '',
+          model: '',
           availability: '',
           price: '',
           category: '',
@@ -168,11 +168,11 @@ export default function AdminManageParts() {
     }
   };
 
-  // ✅ Updated: search now matches brand OR model name
+  // ✅ Search now matches brand OR model
   const filteredProducts = products.filter((product) => {
     const searchText = search.toLowerCase();
     const matchesSearch =
-      product.name.toLowerCase().includes(searchText) ||
+      product.model.toLowerCase().includes(searchText) ||
       product.brand.toLowerCase().includes(searchText);
     const matchesCategory = category === 'All' || product.category === category;
     const matchesUnit = unit === 'All' || product.unit === unit;
@@ -225,7 +225,7 @@ export default function AdminManageParts() {
               setEditProduct(productToEdit);
               setNewProduct({
                 brand: productToEdit.brand,
-                name: productToEdit.name,
+                model: productToEdit.model,
                 availability: productToEdit.availability,
                 price: productToEdit.price,
                 category: productToEdit.category,
@@ -243,7 +243,7 @@ export default function AdminManageParts() {
               setEditProduct(null);
               setNewProduct({
                 brand: '',
-                name: '',
+                model: '',
                 availability: '',
                 price: '',
                 category: '',
@@ -296,19 +296,10 @@ export default function AdminManageParts() {
                 />
               </div>
               <div>{product.brand}</div>
-              <div>{product.name}</div>
+              <div>{product.model}</div>
               <div>{product.unit}</div>
               <div>{product.availability}</div>
-              <div className="price-edit-cell">
-                ₱{product.price}
-                <button
-                  className="pencil-btn"
-                  onClick={() => Swal.fire('Tip', 'Use the ✎ Edit Product button above to edit all fields.', 'info')}
-                  title="Edit Price"
-                >
-                  <Pencil size={15} />
-                </button>
-              </div>
+              <div>₱{product.price}</div>
               <div>{formatDate(product.modified)}</div>
               <div>
                 <button
@@ -351,10 +342,10 @@ export default function AdminManageParts() {
               />
               <input
                 type="text"
-                placeholder="Model"
-                value={newProduct.name}
+                placeholder="Model Name"
+                value={newProduct.model}
                 onChange={(e) =>
-                  setNewProduct({ ...newProduct, name: e.target.value })
+                  setNewProduct({ ...newProduct, model: e.target.value })
                 }
               />
               <input
