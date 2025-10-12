@@ -1,43 +1,77 @@
-.dashboard-container {
-  background-color: #ffffff;
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
-  color: #000;
-  min-height: 80vh;
+/* ========== GENERAL DASHBOARD CONTAINER ========== */
+.owner-dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f9fafb;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.dashboard-title {
-  font-size: 2rem;
-  margin-bottom: 20px;
-}
-
-.dashboard-chart {
-  background-color: #f4f4f4;
-  padding: 40px;
-  border-radius: 8px;
-  text-align: center;
-  color: #555;
-}
-
-/* Dark mode styles */
-body.dark .dashboard-container {
-  background-color: #1f1f1f;
+body.dark .owner-dashboard-container {
+  background-color: #121212;
   color: #f5f5f5;
 }
 
-body.dark .dashboard-chart {
-  background-color: #2c2c2c;
-  color: #ccc;
-}
-.owner-dashboard-container {
-  background-color: #f9fafb;
-  min-height: 100vh;
-  display: flex;
-}
-
+/* ========== MAIN CONTENT AREA ========== */
 .owner-dashboard-container main {
   flex-grow: 1;
   padding: 2rem;
+  background-color: #ffffff;
+  color: #000000;
+  border-radius: 12px;
+  margin: 2rem;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body.dark .owner-dashboard-container main {
+  background-color: #1e1e1e;
+  color: #f5f5f5;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+}
+
+/* ========== TITLES ========== */
+.owner-dashboard-container h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+}
+
+.owner-dashboard-container h2 {
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+/* ========== CHART AREA ========== */
+.dashboard-chart {
+  background-color: #f4f4f4;
+  padding: 50px;
+  border-radius: 8px;
+  text-align: center;
+  color: #333;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body.dark .dashboard-chart {
+  background-color: #2a2a2a;
+  color: #ccc;
+}
+
+/* ========== RECHARTS TOOLTIP (OVERRIDE DEFAULT STYLE) ========== */
+.recharts-tooltip-wrapper {
+  font-size: 0.9rem;
+}
+
+.recharts-tooltip-wrapper .recharts-default-tooltip {
+  background-color: var(--tooltip-bg, #fff);
+  color: var(--tooltip-text, #000);
+  border: none;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  padding: 8px 10px;
+}
+
+body.dark .recharts-tooltip-wrapper .recharts-default-tooltip {
+  --tooltip-bg: #333;
+  --tooltip-text: #fff;
 }

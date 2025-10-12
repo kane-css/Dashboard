@@ -1,51 +1,59 @@
 import React, { useEffect } from "react";
-import { FaTachometerAlt, FaStore, FaCogs, FaCrown, FaMoon, FaSun, FaUser } from "react-icons/fa";
+import {
+  FaTachometerAlt,
+  FaStore,
+  FaCogs,
+  FaCrown,
+  FaMoon,
+  FaSun,
+  FaUser,
+} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import "../admincss/AdminSidebar.css";
 
-export default function AdminSidebar({ darkMode, setDarkMode }) {
+export default function AdminSidebar({ isDark, toggleDarkMode }) {
   const navigate = useNavigate();
 
-  // ✅ Add/remove "dark" class on <body>
+  // ✅ Apply or remove dark mode class to the <body>
   useEffect(() => {
-    if (darkMode) {
+    if (isDark) {
       document.body.classList.add("dark");
     } else {
       document.body.classList.remove("dark");
     }
-  }, [darkMode]);
+  }, [isDark]);
 
   return (
-    <div className={`admin-sidebar ${darkMode ? "dark" : ""}`}>
-      {/* ✅ Top Section (icon + title) */}
+    <div className={`admin-sidebar ${isDark ? "dark" : ""}`}>
+      {/* ✅ Profile section */}
       <div className="profile-section">
         <FaUser className="profile-icon" />
         <h2 className="admin-logo">Admin</h2>
       </div>
 
-      {/* ✅ Nav Section */}
+      {/* ✅ Navigation section */}
       <nav className="admin-nav">
         <button onClick={() => navigate("/admin-dashboard")}>
           <FaTachometerAlt className="nav-icon" /> <span>Overview</span>
         </button>
+
         <button onClick={() => navigate("/admin/manage-parts")}>
           <FaCogs className="nav-icon" /> <span>Manage Parts</span>
         </button>
+
         <button onClick={() => navigate("/admin/top-customized")}>
           <FaCrown className="nav-icon" /> <span>Top Customized</span>
         </button>
+
         <button onClick={() => navigate("/admin/manage-shop")}>
           <FaStore className="nav-icon" /> <span>Manage Shop</span>
         </button>
       </nav>
 
-      {/* ✅ Dark Mode Button (aligned like Owner) */}
+      {/* ✅ Dark mode toggle */}
       <div className="dark-toggle-wrapper">
-        <button
-          className="dark-toggle"
-          onClick={() => setDarkMode(!darkMode)}
-        >
-          {darkMode ? <FaSun /> : <FaMoon />}
+        <button className="dark-toggle" onClick={toggleDarkMode}>
+          {isDark ? <FaSun /> : <FaMoon />}
         </button>
       </div>
     </div>

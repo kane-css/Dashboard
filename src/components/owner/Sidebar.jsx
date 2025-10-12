@@ -1,22 +1,30 @@
 import React, { useEffect } from "react";
-import {FaTachometerAlt,FaBoxes,FaCrown,FaUser,FaCog,FaMoon,FaSun,} from "react-icons/fa";
+import {
+  FaTachometerAlt,
+  FaBoxes,
+  FaCrown,
+  FaUser,
+  FaCog,
+  FaMoon,
+  FaSun,
+} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import "../ownercss/Sidebar.css";
 
-export default function Sidebar({ darkMode, setDarkMode }) {
+export default function OwnerSidebar({ isDark, toggleDarkMode }) {
   const navigate = useNavigate();
 
   // ✅ Add/remove "dark" class on <body>
   useEffect(() => {
-    if (darkMode) {
+    if (isDark) {
       document.body.classList.add("dark");
     } else {
       document.body.classList.remove("dark");
     }
-  }, [darkMode]);
+  }, [isDark]);
 
   return (
-    <div className={`owner-sidebar ${darkMode ? "dark" : ""}`}>
+    <div className={`owner-sidebar ${isDark ? "dark" : ""}`}>
       {/* ✅ Top Section */}
       <div className="profile-section">
         <FaUser className="profile-icon" />
@@ -26,8 +34,7 @@ export default function Sidebar({ darkMode, setDarkMode }) {
       {/* ✅ Nav Section */}
       <nav className="owner-nav">
         <button onClick={() => navigate("/dashboard")}>
-          <FaTachometerAlt className="nav-icon" />{" "}
-          <span>Dashboard Overview</span>
+          <FaTachometerAlt className="nav-icon" /> <span>Dashboard Overview</span>
         </button>
         <button onClick={() => navigate("/inventory")}>
           <FaBoxes className="nav-icon" /> <span>View Inventory & Edit</span>
@@ -45,11 +52,8 @@ export default function Sidebar({ darkMode, setDarkMode }) {
 
       {/* ✅ Dark Mode Button */}
       <div className="dark-toggle-wrapper">
-        <button
-          className="dark-toggle"
-          onClick={() => setDarkMode(!darkMode)}
-        >
-          {darkMode ? <FaSun /> : <FaMoon />}
+        <button className="dark-toggle" onClick={toggleDarkMode}>
+          {isDark ? <FaSun /> : <FaMoon />}
         </button>
       </div>
     </div>
