@@ -216,7 +216,7 @@ export default function AdminManageParts() {
             className="add-btn"
             onClick={() => {
               if (selectedProducts.length !== 1) {
-                Swal.fire('Notice', 'Please select exactly one product to edit.', 'info');
+                Swal.fire('Notice', 'Please select exactly one product to edit.', 'infoo');
                 return;
               }
               const productToEdit = products.find(

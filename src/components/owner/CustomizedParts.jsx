@@ -59,7 +59,7 @@ export default function CustomizedParts() {
         return;
       }
 
-      // Filter by category & unit
+      // Filter by category & units
       const filtered = data.filter(
         (item) =>
           item.inventory_parts.category === category &&

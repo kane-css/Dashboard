@@ -33,7 +33,7 @@ export default function SignUp() {
     checkSession();
   }, [navigate]);
 
-  // Simple email regex for validation
+  // Simple email regex for validations
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleSignUp = async (event) => {

@@ -120,7 +120,7 @@ export default function Inventory() {
   };
 
   const handleSaveProduct = async () => {
-    // compute numbers and availability
+    // compute numbers and availabilitys
     const brand = newProduct.brand || '';
     const model = newProduct.model || newProduct.name || '';
     const added = parseInt(newProduct.added_quantity || 0, 10);

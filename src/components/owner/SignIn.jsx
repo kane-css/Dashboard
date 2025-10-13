@@ -89,7 +89,7 @@ export default function SignIn({ onLogin }) {
     const redirectPath = profile.role === 'owner' ? '/dashboard' : '/admin-dashboard';
     navigate(redirectPath, { replace: true });
 
-    // ✅ Block back button after successful login
+    // ✅ Blocks back button after successful login
     window.history.pushState(null, '', window.location.href);
     window.addEventListener('popstate', () => {
       window.history.pushState(null, '', window.location.href);

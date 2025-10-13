@@ -86,7 +86,7 @@ export default function AdminDashboard({ isDark }) {
                 angle={-45}              // ✅ Tilted/slanted text
                 textAnchor="end"          // ✅ Align to avoid cutoff
                 height={80}               // ✅ Extra space for slanted labels
-                tick={{ fontSize: 12 }}   // ✅ Smaller text for readability
+                tick={{ fontSize: 12 }}   // ✅ Smaller text for readabilitye
               />
               <YAxis stroke={isDark ? "#ddd" : "#333"} />
               <Tooltip

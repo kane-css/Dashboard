@@ -32,7 +32,7 @@ export default function EditProfile() {
         uploadedUrl = await uploadProfileImage(profileFile, user.id);
       }
 
-      // update profiles table
+      // update profiles tables
       const updates = {
         shop_name: shopName,
         owner_name: ownerName,

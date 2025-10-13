@@ -31,7 +31,7 @@ export default function OwnerSidebar({ isDark, toggleDarkMode }) {
         <h2 className="owner-logo">Owner</h2>
       </div>
 
-      {/* ✅ Nav Section */}
+      {/* ✅ Nav Sections */}
       <nav className="owner-nav">
         <button onClick={() => navigate("/dashboard")}>
           <FaTachometerAlt className="nav-icon" /> <span>Dashboard Overview</span>
