@@ -37,73 +37,78 @@ export default function CustomizedParts() {
     const fetchPartsData = async () => {
       const fromDate = getDateFromFilter().toISOString();
 
-      const { data, error } = await supabase
+      // 1️⃣ Get interactions from part_interactions
+      const { data: interactions, error: interactionsError } = await supabase
         .from("part_interactions")
-        .select(
-          `
-          part_id,
-          interaction_date,
-          inventory_parts!inner (
-            id,
-            model,
-            category,
-            unit
-          )
-        `
-        )
+        .select("*")
         .gte("interaction_date", fromDate);
 
-      if (error) {
-        console.error("Error fetching customized parts:", error);
+      if (interactionsError) {
+        console.error("Error fetching part_interactions:", interactionsError);
         setParts([]);
         return;
       }
 
-      // Filter by category & units
-      const filtered = data.filter(
-        (item) =>
-          item.inventory_parts.category === category &&
-          item.inventory_parts.unit === unit
+      if (!interactions || interactions.length === 0) {
+        setParts([]);
+        setChartData([]);
+        setStats({ week: 0, month: 0 });
+        return;
+      }
+
+      // 2️⃣ Get related part data from inventory_parts
+      const partIds = interactions.map((item) => item.part_id);
+      const { data: partsData, error: partsError } = await supabase
+        .from("inventory_parts")
+        .select("id, model, category, unit, brand, price")
+        .in("id", partIds);
+
+      if (partsError) {
+        console.error("Error fetching inventory_parts:", partsError);
+        setParts([]);
+        return;
+      }
+
+      // 3️⃣ Filter by selected category & unit
+      const filtered = partsData.filter(
+        (item) => item.category === category && item.unit === unit
       );
 
-      // Count customizations per part
+      // 4️⃣ Count interactions per part
       const counts = {};
-      filtered.forEach((item) => {
+      interactions.forEach((item) => {
         counts[item.part_id] = (counts[item.part_id] || 0) + 1;
       });
 
-      // Sort and get top 10
-      const sortedParts = Object.entries(counts)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 10)
-        .map(([partId]) => {
-          const partItem = filtered.find(
-            (item) => item.part_id === parseInt(partId)
-          );
-          return partItem ? partItem.inventory_parts : null;
-        })
-        .filter(Boolean);
+      // 5️⃣ Sort and get top 10
+      const sortedParts = filtered
+        .sort((a, b) => (counts[b.id] || 0) - (counts[a.id] || 0))
+        .slice(0, 10);
 
       setParts(sortedParts);
 
-      // ---- Summary Stats ----
+      // 6️⃣ Stats
       const now = new Date();
-      const oneWeekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+      const oneWeekAgo = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() - 7
+      );
       const oneMonthAgo = new Date(now.getFullYear(), now.getMonth(), 1);
 
-      const weekCount = data.filter(
+      const weekCount = interactions.filter(
         (item) => new Date(item.interaction_date) >= oneWeekAgo
       ).length;
 
-      const monthCount = data.filter(
+      const monthCount = interactions.filter(
         (item) => new Date(item.interaction_date) >= oneMonthAgo
       ).length;
 
       setStats({ week: weekCount, month: monthCount });
 
-      // ---- Date Range Chart ----
+      // 7️⃣ Chart data
       const dateCounts = {};
-      data.forEach((item) => {
+      interactions.forEach((item) => {
         const dateKey = new Date(item.interaction_date)
           .toISOString()
           .split("T")[0];
@@ -139,7 +144,10 @@ export default function CustomizedParts() {
       <div className="custom-filter-box">
         <div className="filter-group">
           <label>Date</label>
-          <select value={dateFilter} onChange={(e) => setDateFilter(e.target.value)}>
+          <select
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+          >
             <option>Last 3 days</option>
             <option>Last 7 days</option>
             <option>This month</option>
@@ -147,7 +155,10 @@ export default function CustomizedParts() {
         </div>
         <div className="filter-group">
           <label>Category</label>
-          <select value={category} onChange={(e) => setCategory(e.target.value)}>
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          >
             <option>Rear Shock</option>
             <option>Exhaust</option>
             <option>Disc Brake</option>
@@ -172,13 +183,13 @@ export default function CustomizedParts() {
           parts.map((part, index) => (
             <div className="custom-part-row" key={part.id}>
               <span className="part-index">{index + 1}.</span>
-              <span className="part-name">{part.name}</span>
+              <span className="part-name">{part.model}</span>
             </div>
           ))
         )}
       </div>
 
-      {/* Date Range Chart */}
+      {/* Chart */}
       <div className="chart-container">
         <h3>Customizations Over Time</h3>
         <ResponsiveContainer width="100%" height={300}>
@@ -187,7 +198,12 @@ export default function CustomizedParts() {
             <XAxis dataKey="date" />
             <YAxis />
             <Tooltip />
-            <Line type="monotone" dataKey="count" stroke="#8884d8" strokeWidth={2} />
+            <Line
+              type="monotone"
+              dataKey="count"
+              stroke="#8884d8"
+              strokeWidth={2}
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>
