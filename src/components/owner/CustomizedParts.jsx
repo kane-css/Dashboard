@@ -45,7 +45,7 @@ export default function CustomizedParts() {
           interaction_date,
           inventory_parts!inner (
             id,
-            name,
+            model,
             category,
             unit
           )
