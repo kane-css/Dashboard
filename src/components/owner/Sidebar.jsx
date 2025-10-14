@@ -42,9 +42,6 @@ export default function OwnerSidebar({ isDark, toggleDarkMode }) {
         <button onClick={() => navigate("/customized")}>
           <FaCrown className="nav-icon" /> <span>Top Customized Parts</span>
         </button>
-        <button onClick={() => navigate("/profile")}>
-          <FaCog className="nav-icon" /> <span>Edit Shop Profile</span>
-        </button>
         <button onClick={() => navigate("/settings")}>
           <FaCog className="nav-icon" /> <span>Account Settings</span>
         </button>

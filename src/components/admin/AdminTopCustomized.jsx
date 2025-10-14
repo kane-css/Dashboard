@@ -9,98 +9,56 @@ export default function AdminTopCustomized() {
   const [parts, setParts] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Compute start date (non-mutating)
-  const getDateFromFilter = () => {
-    const now = new Date();
-    if (dateFilter === "Last 3 days") {
-      return new Date(now.getFullYear(), now.getMonth(), now.getDate() - 3);
-    }
-    if (dateFilter === "Last 7 days") {
-      return new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
-    }
-    if (dateFilter === "This month") {
-      return new Date(now.getFullYear(), now.getMonth(), 1);
-    }
-    return new Date(0);
-  };
-
   useEffect(() => {
     const fetchParts = async () => {
       setLoading(true);
       try {
-        const fromDate = getDateFromFilter().toISOString();
-
-        // ✅ 1) Fetch part interactions from the past X days
+        // ✅ Fetch all interactions (no date filter)
         const { data: interactions, error: interactionsError } = await supabase
           .from("part_interactions")
-          .select("id, part_id, created_at")
-          .gte("created_at", fromDate);
+          .select("id, part_id");
 
-        if (interactionsError) {
-          console.error("❌ Error fetching part_interactions:", interactionsError);
+        if (interactionsError || !interactions?.length) {
           setParts([]);
           setLoading(false);
           return;
         }
 
-        if (!interactions || interactions.length === 0) {
-          setParts([]);
-          setLoading(false);
-          return;
-        }
-
-        // ✅ 2) Get unique part IDs
-        const partIds = Array.from(new Set(interactions.map((i) => i.part_id))).filter(Boolean);
-        if (partIds.length === 0) {
-          setParts([]);
-          setLoading(false);
-          return;
-        }
-
-        // ✅ 3) Fetch the related inventory_parts
+        // ✅ Fetch all inventory parts
         const { data: inventoryParts, error: partsError } = await supabase
           .from("inventory_parts")
-          .select("id, model, category, unit")
-          .in("id", partIds);
+          .select("id, model, category, unit");
 
-        if (partsError) {
-          console.error("❌ Error fetching inventory_parts:", partsError);
+        if (partsError || !inventoryParts) {
           setParts([]);
           setLoading(false);
           return;
         }
 
-        // ✅ 4) Filter by category and unit
+        // ✅ Filter parts by category and unit
         const filteredInventory = inventoryParts.filter(
           (p) => p.category === category && p.unit === unit
         );
 
-        if (filteredInventory.length === 0) {
-          setParts([]);
-          setLoading(false);
-          return;
-        }
-
-        // ✅ 5) Count interactions for each allowed part
-        const allowedIds = new Set(filteredInventory.map((p) => String(p.id)));
+        // ✅ Count how many interactions each part has
         const counts = {};
         interactions.forEach((it) => {
           const pid = String(it.part_id);
-          if (allowedIds.has(pid)) {
+          if (filteredInventory.some((p) => String(p.id) === pid)) {
             counts[pid] = (counts[pid] || 0) + 1;
           }
         });
 
-        // ✅ 6) Sort by count and return top 10
+        // ✅ Sort by top 10
         const sorted = Object.entries(counts)
           .sort((a, b) => b[1] - a[1])
           .slice(0, 10)
-          .map(([pid]) => filteredInventory.find((p) => String(p.id) === String(pid)))
+          .map(([pid]) => filteredInventory.find((p) => String(p.id) === pid))
           .filter(Boolean);
 
         setParts(sorted);
       } catch (err) {
-        console.error("⚠️ Unexpected error in fetchParts:", err);
+        console.error("⚠️ Unexpected error:", err);
         setParts([]);
       } finally {
         setLoading(false);
@@ -114,7 +72,6 @@ export default function AdminTopCustomized() {
     <div className="custom-container">
       <h1>Admin Top Customized Parts</h1>
 
-      {/* ✅ Filter section */}
       <div className="custom-filter-box">
         <div className="filter-group">
           <label>Date</label>
@@ -144,7 +101,6 @@ export default function AdminTopCustomized() {
         </div>
       </div>
 
-      {/* ✅ Results list */}
       <div className="custom-list-box">
         {loading ? (
           <p>Loading...</p>

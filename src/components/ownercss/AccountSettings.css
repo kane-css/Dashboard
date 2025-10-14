@@ -10,6 +10,7 @@
   margin-bottom: 20px;
   font-size: 24px;
   color: #111;
+  font-weight: 600;
 }
 
 /* ===========================
@@ -19,70 +20,79 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px; /* equal spacing between buttons */
+  gap: 12px;
   margin-top: 20px;
 }
 
 .settings-buttons button {
-  width: 260px; /* same length for all buttons */
+  width: 260px;
   padding: 12px;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 15px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
+  transition: all 0.2s ease;
 }
 
 .settings-buttons button:hover {
   transform: scale(1.05);
 }
 
-/* Individual Button Colors */
-.btn-view { background: #4b5563; color: #fff; }
-.btn-manage { background: #374151; color: #fff; }
-.btn-system { background: #007bff; color: #fff; }
-.btn-logout { background: #dc3545; color: #fff; }
+/* Button Colors */
+.btn-manage { background: #000; color: #fff; }
+.btn-edit-profile { background: #000; color: #fff; }
+.btn-logout { background: #a01a1a; color: #fff; }
+
+.btn-manage:hover,
+.btn-edit-profile:hover {
+  background-color: #222;
+}
+
+.btn-logout:hover {
+  background-color: #c82333;
+}
 
 /* ===========================
    Modal Styling
    =========================== */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.6);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 999;
 }
 
 .modal-box {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  max-width: 850px;
-  width: 100%;
-  max-height: 80vh;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+  background: #fff;
+  padding: 35px;
+  border-radius: 18px;
+  width: 420px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0px 5px 25px rgba(0, 0, 0, 0.25);
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-box h2 {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 600;
+  color: #111;
+  margin-bottom: 20px;
 }
 
 /* ===========================
-   Modal Content
+   Manage User Access
    =========================== */
-.modal-box h2 {
-  text-align: center;
-  margin-bottom: 20px;
-  font-size: 22px;
-  font-weight: bold;
-  color: #111;
-}
-
-/* User Access List */
 .manage-user-access {
   flex: 1;
   overflow-y: auto;
@@ -101,7 +111,7 @@
   border-bottom: 1px solid #e5e7eb;
 }
 
-.manage-user-access .user-info {
+.user-info {
   margin-bottom: 8px;
 }
 
@@ -119,7 +129,9 @@
 .status-badge.denied { background-color: #fef2f2; color: #b91c1c; }
 .status-badge.pending { background-color: #fef9c3; color: #854d0e; }
 
-/* Actions */
+/* ===========================
+   Actions
+   =========================== */
 .actions {
   display: flex;
   flex-wrap: wrap;
@@ -127,14 +139,15 @@
 }
 
 .actions button {
+  flex: 1;
   min-width: 100px;
-  padding: 7px 12px;
-  border-radius: 6px;
+  padding: 8px 10px;
+  border-radius: 8px;
   border: none;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
+  transition: all 0.2s ease;
 }
 
 .actions button:hover {
@@ -157,19 +170,107 @@
 .btn-delete { background-color: #6b7280; color: #fff; }
 .btn-delete:hover { background-color: #4b5563; }
 
-/* Close Button */
-.close-button {
-  margin-top: 20px;
-  background-color: #374151;
+/* ===========================
+   Edit Shop Profile Modal
+   =========================== */
+.edit-modal input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  background-color: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.edit-modal input:focus {
+  border-color: #000;
+}
+
+/* Buttons inside Edit Modal */
+.btn-update {
+  width: 100%;
+  padding: 12px;
+  background-color: #000;
   color: white;
   border: none;
-  padding: 10px 18px;
-  border-radius: 6px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 10px;
+}
+
+.btn-update:hover {
+  background-color: #222;
+}
+
+/* ===========================
+   Close Button
+   =========================== */
+.close-button {
+  margin-top: 15px;
+  background-color: #e5e7eb;
+  color: #111;
+  border: none;
+  padding: 10px;
+  border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  align-self: center;
+  transition: all 0.2s ease;
 }
+
 .close-button:hover {
-  background-color: #111827;
+  background-color: #d1d5db;
+}
+
+/* ===========================
+   🌙 DARK MODE STYLES FOR MODALS
+   =========================== */
+body.dark .modal-overlay {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+body.dark .modal-box {
+  background-color: #1e1e1e;
+  color: #ffffff;
+  border: 1px solid #444;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+body.dark .modal-box h2 {
+  color: #fff;
+}
+
+body.dark .modal-box input {
+  background-color: #2a2a2a;
+  color: #fff;
+  border: 1px solid #555;
+}
+
+body.dark .modal-box input::placeholder {
+  color: #aaa;
+}
+
+body.dark .modal-box button {
+  background-color: #333;
+  color: #fff;
+  border: 1px solid #555;
+}
+
+body.dark .modal-box button:hover {
+  background-color: #555;
+}
+
+body.dark .close-button {
+  background-color: #333;
+  color: #fff;
+}
+
+body.dark .close-button:hover {
+  background-color: #555;
 }

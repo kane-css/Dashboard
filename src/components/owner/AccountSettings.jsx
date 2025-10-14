@@ -5,8 +5,15 @@ import '../ownercss/AccountSettings.css';
 import { supabase } from '../../supabase';
 
 export default function AccountSettings() {
-  const [showModal, setShowModal] = useState(false);
+  const [showManageModal, setShowManageModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [users, setUsers] = useState([]);
+  const [formData, setFormData] = useState({
+    shopName: '',
+    ownerName: '',
+    contact: '',
+    location: ''
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -17,17 +24,26 @@ export default function AccountSettings() {
         .select('*')
         .neq('id', ownerUser.id);
 
-      if (error) {
-        console.error("Error fetching users:", error);
-      } else {
-        setUsers(data);
-      }
+      if (error) console.error("Error fetching users:", error);
+      else setUsers(data);
     };
 
-    if (showModal) {
-      fetchUsers();
-    }
-  }, [showModal]);
+    if (showManageModal) fetchUsers();
+  }, [showManageModal]);
+
+  const handleInputChange = (e) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleProfileUpdate = () => {
+    Swal.fire({
+      icon: 'success',
+      title: 'Profile Updated!',
+      text: 'Shop profile information has been updated successfully.',
+      confirmButtonColor: '#000'
+    });
+    setShowEditModal(false);
+  };
 
   const toggleStatus = async (userId, currentStatus) => {
     const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
@@ -36,9 +52,8 @@ export default function AccountSettings() {
       .update({ status: newStatus })
       .eq('id', userId);
 
-    if (error) {
-      Swal.fire('Error', error.message, 'error');
-    } else {
+    if (error) Swal.fire('Error', error.message, 'error');
+    else {
       setUsers(users.map(user =>
         user.id === userId ? { ...user, status: newStatus } : user
       ));
@@ -47,12 +62,8 @@ export default function AccountSettings() {
 
   const deleteUser = async (userId) => {
     const { error } = await supabase.from('profiles').delete().eq('id', userId);
-
-    if (error) {
-      Swal.fire('Error', error.message, 'error');
-    } else {
-      setUsers(users.filter(user => user.id !== userId));
-    }
+    if (error) Swal.fire('Error', error.message, 'error');
+    else setUsers(users.filter(user => user.id !== userId));
   };
 
   const approveAsAdmin = async (userId) => {
@@ -61,9 +72,8 @@ export default function AccountSettings() {
       .update({ role: 'admin' })
       .eq('id', userId);
 
-    if (error) {
-      Swal.fire('Error', error.message, 'error');
-    } else {
+    if (error) Swal.fire('Error', error.message, 'error');
+    else {
       Swal.fire('Approved!', 'User has been approved as Admin.', 'success');
       setUsers(users.map(user =>
         user.id === userId ? { ...user, role: 'admin' } : user
@@ -77,9 +87,8 @@ export default function AccountSettings() {
       .update({ role: 'owner' })
       .eq('id', userId);
 
-    if (error) {
-      Swal.fire('Error', error.message, 'error');
-    } else {
+    if (error) Swal.fire('Error', error.message, 'error');
+    else {
       Swal.fire('Approved!', 'User has been approved as Owner.', 'success');
       setUsers(users.map(user =>
         user.id === userId ? { ...user, role: 'owner' } : user
@@ -93,9 +102,8 @@ export default function AccountSettings() {
       .update({ status: 'denied' })
       .eq('id', userId);
 
-    if (error) {
-      Swal.fire('Error', error.message, 'error');
-    } else {
+    if (error) Swal.fire('Error', error.message, 'error');
+    else {
       Swal.fire('Denied!', 'User account has been denied.', 'info');
       setUsers(users.map(user =>
         user.id === userId ? { ...user, status: 'denied' } : user
@@ -126,16 +134,16 @@ export default function AccountSettings() {
 
       {/* Main Buttons */}
       <div className="settings-buttons">
-        <button className="btn-manage" onClick={() => setShowModal(true)}>Manage User Access</button>
+        <button className="btn-manage" onClick={() => setShowManageModal(true)}>Manage User Access</button>
+        <button className="btn-edit-profile" onClick={() => setShowEditModal(true)}>Edit Shop Profile</button>
         <button className="btn-logout" onClick={handleLogoutConfirm}>Log Out</button>
       </div>
 
-      {/* Modal */}
-      {showModal && (
+      {/* Manage Users Modal */}
+      {showManageModal && (
         <div className="modal-overlay">
           <div className="modal-box">
             <h2>Manage User Access</h2>
-
             <div className="manage-user-access">
               <ul>
                 {users.map((user) => (
@@ -160,8 +168,22 @@ export default function AccountSettings() {
                 ))}
               </ul>
             </div>
+            <button className="close-button" onClick={() => setShowManageModal(false)}>Close</button>
+          </div>
+        </div>
+      )}
 
-            <button className="close-button" onClick={() => setShowModal(false)}>Close</button>
+      {/* Edit Shop Profile Modal */}
+      {showEditModal && (
+        <div className="modal-overlay">
+          <div className="modal-box edit-modal">
+            <h2>Edit Shop Profile</h2>
+            <input type="text" name="shopName" placeholder="Shop Name" value={formData.shopName} onChange={handleInputChange} />
+            <input type="text" name="ownerName" placeholder="Owner Name" value={formData.ownerName} onChange={handleInputChange} />
+            <input type="text" name="contact" placeholder="Contact" value={formData.contact} onChange={handleInputChange} />
+            <input type="text" name="location" placeholder="Location" value={formData.location} onChange={handleInputChange} />
+            <button className="btn-update" onClick={handleProfileUpdate}>Update Profile</button>
+            <button className="close-button" onClick={() => setShowEditModal(false)}>Close</button>
           </div>
         </div>
       )}

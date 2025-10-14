@@ -8,7 +8,6 @@ import SignUp from "./components/owner/Signups";
 import Dashboard from "./components/owner/Dashboard";
 import Inventory from "./components/owner/Inventory";
 import CustomizedParts from "./components/owner/CustomizedParts";
-import EditProfile from "./components/owner/EditProfile";
 import AccountSettings from "./components/owner/AccountSettings";
 import Sidebar from "./components/owner/Sidebar";
 
@@ -150,14 +149,6 @@ export default function App() {
         element={
           isLoggedIn && userRole === "owner"
             ? renderWithLayout(CustomizedParts, Sidebar)
-            : <Navigate to="/signin" />
-        }
-      />
-      <Route
-        path="/profile"
-        element={
-          isLoggedIn && userRole === "owner"
-            ? renderWithLayout(EditProfile, Sidebar)
             : <Navigate to="/signin" />
         }
       />
