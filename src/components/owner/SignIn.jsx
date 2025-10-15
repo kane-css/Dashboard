@@ -96,11 +96,43 @@ export default function SignIn({ onLogin }) {
     });
   };
 
+  // ✅ Forgot Password Function
+  const handleForgotPassword = async () => {
+    const { value: emailInput } = await Swal.fire({
+      title: 'Reset Password',
+      input: 'email',
+      inputLabel: 'Enter your registered email address',
+      inputPlaceholder: 'you@example.com',
+      confirmButtonText: 'Send Reset Link',
+      showCancelButton: true,
+    });
+
+    if (!emailInput) return; // Cancelled
+    if (!validateEmail(emailInput)) {
+      return Swal.fire('Invalid Email', 'Please enter a valid email address.', 'warning');
+    }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(emailInput, {
+      redirectTo: `${window.location.origin}/reset-password`, // You’ll add this route later
+    });
+
+    if (error) {
+      Swal.fire('Error', error.message, 'error');
+    } else {
+      Swal.fire(
+        'Email Sent!',
+        'A password reset link has been sent to your email. Please check your inbox.',
+        'success'
+      );
+    }
+  };
+
   return (
     <div className="auth-container">
       <form className="auth-box" onSubmit={handleLogin}>
         <img src={modifikasiLogo} alt="Logo" className="auth-logo" />
         <h2 className="auth-title">Sign In</h2>
+
         <input
           type="email"
           className="auth-input"
@@ -117,14 +149,24 @@ export default function SignIn({ onLogin }) {
           onChange={e => setPassword(e.target.value)}
           required
         />
+
         <button type="submit" className="auth-button">Login</button>
+
         <p className="switch-auth">
           Don't have an account?{' '}
           <span className="auth-link" onClick={() => navigate('/signup', { replace: true })}>
             Sign Up
           </span>
         </p>
+
+        {/* ✅ Forgot Password Link */}
+        <p className="switch-auth">
+          <span className="auth-link" onClick={handleForgotPassword}>
+            Forgot Password?
+          </span>
+        </p>
       </form>
+
       <button
         className="toggle-btn"
         onClick={() => document.body.classList.toggle('dark')}
