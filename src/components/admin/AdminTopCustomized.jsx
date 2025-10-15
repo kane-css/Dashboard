@@ -1,78 +1,75 @@
 import React, { useState, useEffect } from "react";
-import "../ownercss/CustomizedParts.css";
+import "../admincss/AdminTopCustomized.css";
 import { supabase } from "../../supabase";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  ResponsiveContainer,
+} from "recharts";
 
 export default function AdminTopCustomized() {
   const [dateFilter, setDateFilter] = useState("Last 3 days");
-  const [category, setCategory] = useState("Rear Shock");
-  const [unit, setUnit] = useState("Aerox V2");
+  const [category, setCategory] = useState("All Categories");
+  const [unit, setUnit] = useState("All Units");
   const [parts, setParts] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [theme, setTheme] = useState(document.documentElement.getAttribute("data-theme"));
 
   useEffect(() => {
-    const fetchParts = async () => {
+    const observer = new MutationObserver(() => {
+      setTheme(document.documentElement.getAttribute("data-theme"));
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const fetchMostViewedParts = async () => {
       setLoading(true);
-      try {
-        // ✅ Fetch all interactions (no date filter)
-        const { data: interactions, error: interactionsError } = await supabase
-          .from("part_interactions")
-          .select("id, part_id");
 
-        if (interactionsError || !interactions?.length) {
-          setParts([]);
-          setLoading(false);
-          return;
-        }
+      const { data, error } = await supabase
+        .from("inventory_parts")
+        .select("id, model, category, unit, part_views")
+        .order("part_views", { ascending: false })
+        .limit(10);
 
-        // ✅ Fetch all inventory parts
-        const { data: inventoryParts, error: partsError } = await supabase
-          .from("inventory_parts")
-          .select("id, model, category, unit");
-
-        if (partsError || !inventoryParts) {
-          setParts([]);
-          setLoading(false);
-          return;
-        }
-
-        // ✅ Filter parts by category and unit
-        const filteredInventory = inventoryParts.filter(
-          (p) => p.category === category && p.unit === unit
-        );
-
-        // ✅ Count how many interactions each part has
-        const counts = {};
-        interactions.forEach((it) => {
-          const pid = String(it.part_id);
-          if (filteredInventory.some((p) => String(p.id) === pid)) {
-            counts[pid] = (counts[pid] || 0) + 1;
-          }
-        });
-
-        // ✅ Sort by top 10
-        const sorted = Object.entries(counts)
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 10)
-          .map(([pid]) => filteredInventory.find((p) => String(p.id) === pid))
-          .filter(Boolean);
-
-        setParts(sorted);
-      } catch (err) {
-        console.error("⚠️ Unexpected error:", err);
+      if (error) {
+        console.error("Error fetching viewed parts:", error);
         setParts([]);
-      } finally {
         setLoading(false);
+        return;
       }
+
+      let filtered = data;
+
+      if (category !== "All Categories") {
+        filtered = filtered.filter((item) => item.category === category);
+      }
+
+      if (unit !== "All Units") {
+        filtered = filtered.filter((item) => item.unit === unit);
+      }
+
+      setParts(filtered);
+      setLoading(false);
     };
 
-    fetchParts();
+    fetchMostViewedParts();
   }, [dateFilter, category, unit]);
 
   return (
-    <div className="custom-container">
-      <h1>Admin Top Customized Parts</h1>
-
-      <div className="custom-filter-box">
+    <div className="admin-topcustomized-container no-bg">
+      {/* FILTER SECTION */}
+      <div className="admin-filter-box">
         <div className="filter-group">
           <label>Date</label>
           <select value={dateFilter} onChange={(e) => setDateFilter(e.target.value)}>
@@ -85,6 +82,7 @@ export default function AdminTopCustomized() {
         <div className="filter-group">
           <label>Category</label>
           <select value={category} onChange={(e) => setCategory(e.target.value)}>
+            <option>All Categories</option>
             <option>Rear Shock</option>
             <option>Exhaust</option>
             <option>Disc Brake</option>
@@ -95,25 +93,54 @@ export default function AdminTopCustomized() {
         <div className="filter-group">
           <label>Unit</label>
           <select value={unit} onChange={(e) => setUnit(e.target.value)}>
+            <option>All Units</option>
             <option>Aerox V2</option>
             <option>Nmax V2</option>
           </select>
         </div>
       </div>
 
-      <div className="custom-list-box">
-        {loading ? (
-          <p>Loading...</p>
-        ) : parts.length === 0 ? (
-          <p>No parts found for the selected filters.</p>
-        ) : (
-          parts.map((part, index) => (
-            <div className="custom-part-row" key={part.id}>
-              <span className="part-index">{index + 1}.</span>
-              <span className="part-name">{part.model}</span>
-            </div>
-          ))
-        )}
+      {/* CHART SECTION */}
+      <div className="admin-chart-box chart-box">
+        <h3>Top 10 Most Viewed Parts</h3>
+        <div className="chart-inner-box">
+          {loading ? (
+            <p>Loading chart...</p>
+          ) : parts.length === 0 ? (
+            <p>No data available for selected filters.</p>
+          ) : (
+            <ResponsiveContainer
+              width="100%"
+              height={400}
+              className={theme === "dark" ? "dark-chart" : ""}
+            >
+              <BarChart
+                data={parts}
+                margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
+                barCategoryGap="20%"
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                <XAxis
+                  dataKey="model"
+                  interval={0}
+                  angle={-25}
+                  textAnchor="end"
+                  tick={{ fontSize: 12, fill: "var(--text-color)" }}
+                />
+                <YAxis tick={{ fill: "var(--text-color)" }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "var(--card-bg)",
+                    color: "var(--text-color)",
+                    border: "1px solid var(--border-color)",
+                    borderRadius: "6px",
+                  }}
+                />
+                <Bar dataKey="part_views" fill="var(--chart-bar)" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </div>
       </div>
     </div>
   );

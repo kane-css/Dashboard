@@ -10,11 +10,12 @@ export default function SignIn({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showForgotModal, setShowForgotModal] = useState(false);
-  const [resetStep, setResetStep] = useState(1);
   const [resetEmail, setResetEmail] = useState("");
   const [resetCode, setResetCode] = useState("");
   const [enteredCode, setEnteredCode] = useState("");
+  const [stage, setStage] = useState("email"); // email → code → reset
   const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isDark, setIsDark] = useState(() => {
     const savedTheme = localStorage.getItem("theme");
     return savedTheme === "dark";
@@ -22,11 +23,13 @@ export default function SignIn({ onLogin }) {
 
   const navigate = useNavigate();
 
+  // ---- Theme handling ----
   useEffect(() => {
     document.body.classList.toggle("dark", isDark);
     localStorage.setItem("theme", isDark ? "dark" : "light");
   }, [isDark]);
 
+  // ---- Check for active session ----
   useEffect(() => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
@@ -52,8 +55,10 @@ export default function SignIn({ onLogin }) {
     checkSession();
   }, [navigate]);
 
+  // ---- Email validator ----
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
+  // ---- Handle login ----
   const handleLogin = async (event) => {
     event.preventDefault();
 
@@ -100,39 +105,67 @@ export default function SignIn({ onLogin }) {
     });
   };
 
-  // ---- Forgot Password Flow ----
+  // ---- Forgot Password Flow (using reset code) ----
   const handleSendResetCode = async () => {
     if (!validateEmail(resetEmail))
       return Swal.fire("Invalid Email", "Please enter a valid email address.", "warning");
 
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    setResetCode(code);
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+    const { error } = await supabase.from("password_reset_codes").insert([
+      {
+        email: resetEmail,
+        code: resetCode,
+        expires_at: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes expiry
+      },
+    ]);
+
+    if (error) {
+      console.error(error);
+      Swal.fire("Error", "Failed to send reset code.", "error");
+      return;
+    }
 
     Swal.fire(
-      "Verification Code Sent",
-      `A 6-digit verification code has been sent to ${resetEmail}. (For testing, your code is: ${code})`,
+      "Reset Code Sent",
+      `A 6-digit reset code was sent to ${resetEmail}. (For testing: ${resetCode})`,
       "info"
     );
-
-    setResetStep(2);
+    setResetCode(resetCode);
+    setStage("code");
   };
 
   const handleVerifyCode = () => {
-    if (enteredCode !== resetCode)
-      return Swal.fire("Invalid Code", "The verification code is incorrect.", "error");
-    setResetStep(3);
+    if (enteredCode.trim() !== resetCode)
+      return Swal.fire("Error", "Incorrect code. Please try again.", "error");
+
+    Swal.fire("Verified", "Code verified. You can now reset your password.", "success");
+    setStage("reset");
   };
 
-  const handleUpdatePassword = async () => {
+  const handleResetPassword = async () => {
     if (newPassword.length < 6)
-      return Swal.fire("Weak Password", "Password must be at least 6 characters.", "warning");
+      return Swal.fire("Error", "Password must be at least 6 characters.", "warning");
+    if (newPassword !== confirmPassword)
+      return Swal.fire("Error", "Passwords do not match.", "warning");
 
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
-    if (error) return Swal.fire("Error", error.message, "error");
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
 
-    Swal.fire("Success", "Your password has been updated.", "success");
+    if (error) {
+      Swal.fire("Error", error.message, "error");
+      return;
+    }
+
+    Swal.fire("Success", "Password has been reset successfully!", "success");
     setShowForgotModal(false);
-    setResetStep(1);
+    setStage("email");
+    setResetEmail("");
+    setResetCode("");
+    setEnteredCode("");
+    setNewPassword("");
+    setConfirmPassword("");
   };
 
   return (
@@ -158,7 +191,9 @@ export default function SignIn({ onLogin }) {
           required
         />
 
-        <button type="submit" className="auth-button">Login</button>
+        <button type="submit" className="auth-button">
+          Login
+        </button>
 
         <p className="forgot-pass" onClick={() => setShowForgotModal(true)}>
           Forgot Password?
@@ -180,12 +215,14 @@ export default function SignIn({ onLogin }) {
         {isDark ? <Sun size={20} /> : <Moon size={20} />}
       </button>
 
+      {/* Forgot Password Modal */}
       {showForgotModal && (
         <div className="modal-overlay">
           <div className="modal-box">
-            {resetStep === 1 && (
+            <h3>Forgot Password</h3>
+
+            {stage === "email" && (
               <>
-                <h3>Forgot Password</h3>
                 <input
                   type="email"
                   placeholder="Enter your email"
@@ -194,14 +231,13 @@ export default function SignIn({ onLogin }) {
                   onChange={(e) => setResetEmail(e.target.value)}
                 />
                 <button className="auth-button" onClick={handleSendResetCode}>
-                  Send Code
+                  Send Reset Code
                 </button>
               </>
             )}
 
-            {resetStep === 2 && (
+            {stage === "code" && (
               <>
-                <h3>Verify Code</h3>
                 <input
                   type="text"
                   placeholder="Enter 6-digit code"
@@ -210,23 +246,29 @@ export default function SignIn({ onLogin }) {
                   onChange={(e) => setEnteredCode(e.target.value)}
                 />
                 <button className="auth-button" onClick={handleVerifyCode}>
-                  Verify
+                  Verify Code
                 </button>
               </>
             )}
 
-            {resetStep === 3 && (
+            {stage === "reset" && (
               <>
-                <h3>Set New Password</h3>
                 <input
                   type="password"
-                  placeholder="Enter new password"
+                  placeholder="New Password"
                   className="auth-input"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                 />
-                <button className="auth-button" onClick={handleUpdatePassword}>
-                  Update Password
+                <input
+                  type="password"
+                  placeholder="Confirm Password"
+                  className="auth-input"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+                <button className="auth-button" onClick={handleResetPassword}>
+                  Reset Password
                 </button>
               </>
             )}

@@ -25,7 +25,7 @@ export default function CustomizedParts() {
 
       const { data, error } = await supabase
         .from("inventory_parts")
-        .select("id, model, category, unit, part_views, updated_at")
+        .select("id, model, category, unit, part_views")
         .order("part_views", { ascending: false })
         .limit(10);
 
@@ -36,7 +36,6 @@ export default function CustomizedParts() {
         return;
       }
 
-      // Apply filters more safely
       let filtered = data;
 
       if (category !== "All Categories") {
@@ -56,18 +55,6 @@ export default function CustomizedParts() {
 
   return (
     <div className="custom-container">
-      {/* Summary Boxes */}
-      <div className="summary-box">
-        <div className="summary-item">
-          <h3>{stats.week}</h3>
-          <p>This Week</p>
-        </div>
-        <div className="summary-item">
-          <h3>{stats.month}</h3>
-          <p>This Month</p>
-        </div>
-      </div>
-
       {/* Filters */}
       <div className="custom-filter-box">
         <div className="filter-group">
@@ -81,6 +68,7 @@ export default function CustomizedParts() {
             <option>This month</option>
           </select>
         </div>
+
         <div className="filter-group">
           <label>Category</label>
           <select
@@ -94,6 +82,7 @@ export default function CustomizedParts() {
             <option>Calipher</option>
           </select>
         </div>
+
         <div className="filter-group">
           <label>Unit</label>
           <select value={unit} onChange={(e) => setUnit(e.target.value)}>
@@ -101,6 +90,18 @@ export default function CustomizedParts() {
             <option>Aerox V2</option>
             <option>Nmax V2</option>
           </select>
+        </div>
+      </div>
+
+      {/* Summary Boxes (moved below filters) */}
+      <div className="summary-box">
+        <div className="summary-item">
+          <h3>{stats.week}</h3>
+          <p>This Week</p>
+        </div>
+        <div className="summary-item">
+          <h3>{stats.month}</h3>
+          <p>This Month</p>
         </div>
       </div>
 
@@ -125,13 +126,13 @@ export default function CustomizedParts() {
                 interval={0}
                 angle={-25}
                 textAnchor="end"
-                tick={{ fontSize: 12, fill: "#333" }}
+                tick={{ fontSize: 12, fill: "#ccc" }}
               />
-              <YAxis tick={{ fill: "#333" }} />
+              <YAxis tick={{ fill: "#ccc" }} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "#fff",
-                  color: "#000",
+                  backgroundColor: "#1e1e1e",
+                  color: "#fff",
                   border: "none",
                   borderRadius: "6px",
                 }}

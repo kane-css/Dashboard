@@ -1,126 +1,217 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { supabase } from "../../supabase";
-import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
-export default function ResetPassword() {
+export default function ForgotPassword() {
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [enteredCode, setEnteredCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [tokenLoaded, setTokenLoaded] = useState(false);
-  const navigate = useNavigate();
+  const [stage, setStage] = useState("email"); // "email" -> "code" -> "reset"
+  const [loading, setLoading] = useState(false);
 
-  // ✅ When the user clicks the email link, Supabase includes a token in the URL.
-  // This hook detects it and lets Supabase handle session recovery.
-  useEffect(() => {
-    const hash = window.location.hash;
-    if (hash.includes("access_token")) {
-      const params = new URLSearchParams(hash.substring(1));
-      const access_token = params.get("access_token");
-      const refresh_token = params.get("refresh_token");
-
-      if (access_token) {
-        supabase.auth.setSession({
-          access_token,
-          refresh_token,
-        });
-        setTokenLoaded(true);
-      }
-    } else {
-      setTokenLoaded(true); // still allow page render
-    }
-  }, []);
-
-  const handleResetPassword = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
-
-    if (newPassword !== confirmPassword) {
-      setError("Passwords do not match.");
+  // ✅ Step 1: Send reset code
+  const handleSendResetCode = async () => {
+    if (!email.trim()) {
+      Swal.fire("Error", "Please enter your email.", "warning");
       return;
     }
 
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
+    setLoading(true);
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-      if (error) throw error;
+    // Store the code temporarily in Supabase (custom table)
+    const { error } = await supabase.from("password_reset_codes").insert([
+      {
+        email,
+        code: resetCode,
+        expires_at: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes expiry
+      },
+    ]);
 
-      setSuccess("Your password has been updated successfully!");
-      setTimeout(() => navigate("/signin"), 2000);
-    } catch (err) {
-      setError(err.message);
+    setLoading(false);
+
+    if (error) {
+      Swal.fire("Error", "Failed to send reset code.", "error");
+      console.error(error);
+      return;
     }
+
+    Swal.fire(
+      "Reset Code Sent",
+      `A 6-digit reset code was sent to ${email}. (For testing: ${resetCode})`,
+      "info"
+    );
+    setCode(resetCode);
+    setStage("code");
   };
 
-  if (!tokenLoaded) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p>Verifying link...</p>
-      </div>
-    );
-  }
+  // ✅ Step 2: Verify reset code
+  const handleVerifyCode = async () => {
+    if (enteredCode.trim() !== code) {
+      Swal.fire("Error", "The code you entered is incorrect.", "error");
+      return;
+    }
+
+    Swal.fire("Success", "Code verified. You can now set a new password.", "success");
+    setStage("reset");
+  };
+
+  // ✅ Step 3: Reset password
+  const handleResetPassword = async () => {
+    if (newPassword.length < 6) {
+      Swal.fire("Error", "Password must be at least 6 characters.", "warning");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      Swal.fire("Error", "Passwords do not match.", "warning");
+      return;
+    }
+
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (error) {
+      Swal.fire("Error", error.message, "error");
+      return;
+    }
+
+    Swal.fire("Success", "Password has been reset successfully!", "success");
+    setStage("email");
+    setEmail("");
+    setCode("");
+    setEnteredCode("");
+    setNewPassword("");
+    setConfirmPassword("");
+  };
 
   return (
     <div
-      className="flex flex-col items-center justify-center h-screen bg-gray-100"
-      style={{ padding: "20px" }}
+      style={{
+        maxWidth: 400,
+        margin: "80px auto",
+        padding: 24,
+        borderRadius: 12,
+        boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+        backgroundColor: "#fff",
+      }}
     >
-      <div
-        className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md"
-        style={{ textAlign: "center" }}
-      >
-        <h2 className="text-2xl font-bold mb-6">Reset Password</h2>
+      <h2 style={{ textAlign: "center", marginBottom: 20 }}>Forgot Password</h2>
 
-        {error && (
-          <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
-            {error}
-          </div>
-        )}
-        {success && (
-          <div className="bg-green-100 text-green-700 p-3 rounded mb-4">
-            {success}
-          </div>
-        )}
+      {/* Step 1: Enter Email */}
+      {stage === "email" && (
+        <>
+          <input
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            style={{
+              width: "100%",
+              padding: 10,
+              marginBottom: 10,
+              borderRadius: 8,
+              border: "1px solid #ccc",
+            }}
+          />
+          <button
+            onClick={handleSendResetCode}
+            disabled={loading}
+            style={{
+              width: "100%",
+              padding: 10,
+              border: "none",
+              borderRadius: 8,
+              backgroundColor: "#007bff",
+              color: "#fff",
+              cursor: "pointer",
+            }}
+          >
+            {loading ? "Sending..." : "Send Code"}
+          </button>
+        </>
+      )}
 
-        <form onSubmit={handleResetPassword}>
+      {/* Step 2: Enter Code */}
+      {stage === "code" && (
+        <>
+          <input
+            type="text"
+            placeholder="Enter the 6-digit code"
+            value={enteredCode}
+            onChange={(e) => setEnteredCode(e.target.value)}
+            style={{
+              width: "100%",
+              padding: 10,
+              marginBottom: 10,
+              borderRadius: 8,
+              border: "1px solid #ccc",
+            }}
+          />
+          <button
+            onClick={handleVerifyCode}
+            style={{
+              width: "100%",
+              padding: 10,
+              border: "none",
+              borderRadius: 8,
+              backgroundColor: "#28a745",
+              color: "#fff",
+              cursor: "pointer",
+            }}
+          >
+            Verify Code
+          </button>
+        </>
+      )}
+
+      {/* Step 3: Reset Password */}
+      {stage === "reset" && (
+        <>
           <input
             type="password"
             placeholder="New Password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
-            className="w-full border border-gray-300 rounded p-3 mb-4"
-            required
+            style={{
+              width: "100%",
+              padding: 10,
+              marginBottom: 10,
+              borderRadius: 8,
+              border: "1px solid #ccc",
+            }}
           />
-
           <input
             type="password"
-            placeholder="Confirm New Password"
+            placeholder="Confirm Password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="w-full border border-gray-300 rounded p-3 mb-4"
-            required
+            style={{
+              width: "100%",
+              padding: 10,
+              marginBottom: 10,
+              borderRadius: 8,
+              border: "1px solid #ccc",
+            }}
           />
-
           <button
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded"
+            onClick={handleResetPassword}
+            style={{
+              width: "100%",
+              padding: 10,
+              border: "none",
+              borderRadius: 8,
+              backgroundColor: "#007bff",
+              color: "#fff",
+              cursor: "pointer",
+            }}
           >
-            Update Password
+            Reset Password
           </button>
-        </form>
-
-        <p className="mt-4 text-sm">
-          <a
-            href="/signin"
-            className="text-blue-600 hover:underline"
-          >
-            Back to Sign In
-          </a>
-        </p>
-      </div>
+        </>
+      )}
     </div>
   );
 }
