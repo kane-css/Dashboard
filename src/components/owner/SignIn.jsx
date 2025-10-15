@@ -22,13 +22,11 @@ export default function SignIn({ onLogin }) {
 
   const navigate = useNavigate();
 
-  // ✅ Apply dark mode globally and save preference
   useEffect(() => {
     document.body.classList.toggle("dark", isDark);
     localStorage.setItem("theme", isDark ? "dark" : "light");
   }, [isDark]);
 
-  // ✅ Redirect if already logged in
   useEffect(() => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
@@ -174,7 +172,6 @@ export default function SignIn({ onLogin }) {
         </p>
       </form>
 
-      {/* ✅ Always visible dark mode toggle */}
       <button
         className={`toggle-btn ${isDark ? "dark-mode" : "light-mode"}`}
         onClick={() => setIsDark(!isDark)}
@@ -183,7 +180,6 @@ export default function SignIn({ onLogin }) {
         {isDark ? <Sun size={20} /> : <Moon size={20} />}
       </button>
 
-      {/* Forgot Password Modal */}
       {showForgotModal && (
         <div className="modal-overlay">
           <div className="modal-box">

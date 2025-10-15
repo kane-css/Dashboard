@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { supabase } from "./supabase";
 
 // Owner Components
+import ResetPassword from "./components/auth/ResetPassword";
 import SignIn from "./components/owner/SignIn";
 import SignUp from "./components/owner/Signups";
 import Dashboard from "./components/owner/Dashboard";
@@ -126,6 +127,8 @@ export default function App() {
       <Route path="/" element={<Navigate to="/signin" />} />
       <Route path="/signin" element={<SignIn onLogin={handleLogin} />} />
       <Route path="/signup" element={<SignUp />} />
+      <Route path="/reset-password" element={<ResetPassword />} /> {/* ✅ Add this line */}
+
 
       {/* Owner routes */}
       <Route
