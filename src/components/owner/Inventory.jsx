@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-
 import { supabase } from '../../supabase';
 import { X } from 'lucide-react';
 
@@ -92,35 +91,85 @@ export default function Inventory() {
     }
   };
 
-  const handleMarkAsSold = async (product) => {
-    const { value } = await Swal.fire({
-      title: `Mark "${product.model || product.name || ''}" as sold`,
-      input: 'number',
-      inputLabel: 'Enter quantity sold',
-      inputAttributes: { min: 1, max: product.availability || 0 },
-      showCancelButton: true,
-    });
-    const qty = parseInt(value, 10);
-    if (!qty || qty <= 0) return;
-    if (qty > (product.availability || 0)) {
-      Swal.fire('Notice', `Only ${(product.availability || 0)} available.`, 'info');
-      return;
-    }
-    const newSold = (product.sold_quantity || product.sold || 0) + qty;
-    const newAvail = (product.availability || 0) - qty;
-    const { error } = await supabase
-      .from('inventory_parts')
-      .update({ sold_quantity: newSold, availability: newAvail, modified: new Date().toISOString() })
-      .eq('id', product.id);
-    if (error) Swal.fire('Error', 'Failed to update sold quantity', 'error');
-    else {
-      Swal.fire('Success', `Marked ${qty} as sold.`, 'success');
-      fetchProducts();
-    }
-  };
+  // ✅ UPDATED FUNCTION - Marks as sold + logs to sales_history
+  // ✅ UPDATED FUNCTION - Marks as sold + logs to sales_history safely
+// ✅ UPDATED FUNCTION — correctly updates stock and logs sales
+const handleMarkAsSold = async (product) => {
+  const { value } = await Swal.fire({
+    title: `Mark "${product.model || product.name || ''}" as sold`,
+    input: 'number',
+    inputLabel: 'Enter quantity sold',
+    inputAttributes: { min: 1, max: product.availability || 0 },
+    showCancelButton: true,
+  });
+
+  const qty = parseInt(value, 10);
+  if (!qty || qty <= 0) return;
+
+  if (qty > (product.availability || 0)) {
+    Swal.fire('Notice', `Only ${(product.availability || 0)} available.`, 'info');
+    return;
+  }
+
+  // ✅ Double-check product exists before inserting to avoid FK error
+  const { data: checkPart, error: checkError } = await supabase
+    .from('inventory_parts')
+    .select('id')
+    .eq('id', product.id)
+    .single();
+
+  if (checkError || !checkPart) {
+    Swal.fire('Error', 'Product not found in inventory_parts.', 'error');
+    return;
+  }
+
+  // ✅ Update stock in inventory_parts
+  const newSold = (product.sold_quantity || 0) + qty;
+  const newAvail = (product.availability || 0) - qty;
+
+  const { error: updateError } = await supabase
+    .from('inventory_parts')
+    .update({
+      sold_quantity: newSold,
+      availability: newAvail,
+      modified: new Date().toISOString(),
+    })
+    .eq('id', product.id);
+
+  if (updateError) {
+    Swal.fire('Error', `Failed to update sold quantity: ${updateError.message}`, 'error');
+    return;
+  }
+
+  // ✅ Log the sale in sales_history table
+  const { error: insertError } = await supabase
+    .from('sales_history')
+    .insert([
+      {
+        part_id: product.id,       // ✅ Use correct part ID
+        date_sold: new Date(),     // ✅ Matches your table column
+        quantity_sold: qty,        // ✅ Correct sold amount
+      },
+    ]);
+
+  if (insertError) {
+    console.error('Sales log error:', insertError);
+    Swal.fire(
+      'Warning',
+      `Updated stock but failed to log sale history: ${insertError.message}`,
+      'warning'
+    );
+  } else {
+    Swal.fire('Success', `Marked ${qty} as sold and logged to sales history.`, 'success');
+  }
+
+  // ✅ Refresh the products table and graph data
+  fetchProducts();
+};
+
+
 
   const handleSaveProduct = async () => {
-    // compute numbers and availabilitys
     const brand = newProduct.brand || '';
     const model = newProduct.model || newProduct.name || '';
     const added = parseInt(newProduct.added_quantity || 0, 10);
@@ -189,7 +238,6 @@ export default function Inventory() {
     }
   };
 
-  // Edit Product (top button)
   const handleTopEdit = () => {
     if (selected.length !== 1) {
       Swal.fire('Notice', 'Please select exactly one product to edit.', 'info');
@@ -212,7 +260,6 @@ export default function Inventory() {
     setShowModal(true);
   };
 
-  // filtered list - search by model OR brand (fallback to name)
   const filteredProducts = products.filter((product) => {
     const searchText = (search || '').toLowerCase();
     const modelName = (product.model || product.name || '').toString().toLowerCase();
@@ -223,7 +270,6 @@ export default function Inventory() {
     return matchesSearch && matchesCategory && matchesUnit;
   });
 
-  // for select-all checkbox checked state
   const allVisibleSelected = filteredProducts.length > 0 && selected.length === filteredProducts.length;
 
   return (
@@ -258,13 +304,7 @@ export default function Inventory() {
             <option>Nmax</option>
           </select>
 
-          {/* Edit Product top button */}
-          <button
-            className="add-btn"
-            onClick={handleTopEdit}
-          >
-            ✎ Edit Product
-          </button>
+          <button className="add-btn" onClick={handleTopEdit}>✎ Edit Product</button>
 
           <button
             className="add-btn"
@@ -295,13 +335,12 @@ export default function Inventory() {
           </button>
         </div>
 
-        {/* Table: using admin-style grid but adapted to include Added + Sold */}
+        {/* TABLE */}
         <div className="inventory-table">
           <div
             className="inventory-header"
             style={{
-              gridTemplateColumns:
-                '48px 1.2fr 2fr 0.9fr 0.9fr 0.9fr 120px 120px 120px',
+              gridTemplateColumns: '48px 1.2fr 2fr 0.9fr 0.9fr 0.9fr 120px 120px 120px 150px',
             }}
           >
             <div>
@@ -319,6 +358,7 @@ export default function Inventory() {
             <div>Price</div>
             <div>Category</div>
             <div>Unit</div>
+            <div>Actions</div>
           </div>
 
           {filteredProducts.map((product) => (
@@ -326,8 +366,7 @@ export default function Inventory() {
               className="inventory-row"
               key={product.id}
               style={{
-                gridTemplateColumns:
-                  '48px 1.2fr 2fr 0.9fr 0.9fr 0.9fr 120px 120px 120px',
+                gridTemplateColumns: '48px 1.2fr 2fr 0.9fr 0.9fr 0.9fr 120px 120px 120px 150px',
               }}
             >
               <div>
@@ -342,16 +381,38 @@ export default function Inventory() {
               <div>{product.model || product.name || ''}</div>
               <div>{product.added_quantity ?? product.added ?? ''}</div>
               <div>{product.sold_quantity ?? product.sold ?? 0}</div>
-              <div>{product.availability ?? ( (product.added_quantity ?? product.added ?? 0) - (product.sold_quantity ?? product.sold ?? 0) )}</div>
+              <div>
+                {product.availability ??
+                  (product.added_quantity ?? product.added ?? 0) -
+                    (product.sold_quantity ?? product.sold ?? 0)}
+              </div>
               <div>₱{product.price?.toLocaleString?.() ?? product.price}</div>
               <div>{product.category ?? ''}</div>
               <div>{product.unit ?? ''}</div>
+
+              {/* ✅ Action buttons */}
+              <div>
+                <button
+                  className="add-btn"
+                  style={{ background: '#22c55e', marginRight: '5px' }}
+                  onClick={() => handleAddStock(product)}
+                >
+                  + Stock
+                </button>
+                <button
+                  className="delete-selected-btn"
+                  style={{ background: '#3b82f6' }}
+                  onClick={() => handleMarkAsSold(product)}
+                >
+                  Sold
+                </button>
+              </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Add/Edit Modal */}
+      {/* ADD/EDIT MODAL */}
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-content" style={{ width: 460 }}>
