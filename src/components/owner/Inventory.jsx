@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import { supabase } from '../../supabase';
 import { X } from 'lucide-react';
+import "../ownercss/Inventory.css";
 
 export default function Inventory() {
   const [search, setSearch] = useState('');
@@ -79,11 +80,27 @@ export default function Inventory() {
     });
     const qty = parseInt(value, 10);
     if (!qty || qty <= 0) return;
-    const newAvail = (product.availability || 0) + qty;
+
+    // Re-fetch the latest product availability to avoid concatenation issues
+    const { data: latest, error: fetchError } = await supabase
+      .from('inventory_parts')
+      .select('availability')
+      .eq('id', product.id)
+      .single();
+
+    if (fetchError) {
+      Swal.fire('Error', 'Failed to fetch latest product data', 'error');
+      return;
+    }
+
+    const currentAvail = parseInt(latest?.availability ?? 0, 10);
+    const newAvail = currentAvail + qty;
+
     const { error } = await supabase
       .from('inventory_parts')
       .update({ availability: newAvail, modified: new Date().toISOString() })
       .eq('id', product.id);
+
     if (error) Swal.fire('Error', 'Failed to add stock', 'error');
     else {
       Swal.fire('Success', `Added ${qty} to stock.`, 'success');
@@ -91,83 +108,76 @@ export default function Inventory() {
     }
   };
 
-  // ✅ UPDATED FUNCTION - Marks as sold + logs to sales_history
-  // ✅ UPDATED FUNCTION - Marks as sold + logs to sales_history safely
-// ✅ UPDATED FUNCTION — correctly updates stock and logs sales
-const handleMarkAsSold = async (product) => {
-  const { value } = await Swal.fire({
-    title: `Mark "${product.model || product.name || ''}" as sold`,
-    input: 'number',
-    inputLabel: 'Enter quantity sold',
-    inputAttributes: { min: 1, max: product.availability || 0 },
-    showCancelButton: true,
-  });
+  // Mark as sold + log to sales_history
+  const handleMarkAsSold = async (product) => {
+    const { value } = await Swal.fire({
+      title: `Mark "${product.model || product.name || ''}" as sold`,
+      input: 'number',
+      inputLabel: 'Enter quantity sold',
+      inputAttributes: { min: 1, max: product.availability || 0 },
+      showCancelButton: true,
+    });
 
-  const qty = parseInt(value, 10);
-  if (!qty || qty <= 0) return;
+    const qty = parseInt(value, 10);
+    if (!qty || qty <= 0) return;
 
-  if (qty > (product.availability || 0)) {
-    Swal.fire('Notice', `Only ${(product.availability || 0)} available.`, 'info');
-    return;
-  }
+    if (qty > (product.availability || 0)) {
+      Swal.fire('Notice', `Only ${(product.availability || 0)} available.`, 'info');
+      return;
+    }
 
-  // ✅ Double-check product exists before inserting to avoid FK error
-  const { data: checkPart, error: checkError } = await supabase
-    .from('inventory_parts')
-    .select('id')
-    .eq('id', product.id)
-    .single();
+    // verify product exists
+    const { data: checkPart, error: checkError } = await supabase
+      .from('inventory_parts')
+      .select('id')
+      .eq('id', product.id)
+      .single();
 
-  if (checkError || !checkPart) {
-    Swal.fire('Error', 'Product not found in inventory_parts.', 'error');
-    return;
-  }
+    if (checkError || !checkPart) {
+      Swal.fire('Error', 'Product not found in inventory_parts.', 'error');
+      return;
+    }
 
-  // ✅ Update stock in inventory_parts
-  const newSold = (product.sold_quantity || 0) + qty;
-  const newAvail = (product.availability || 0) - qty;
+    const newSold = (product.sold_quantity || 0) + qty;
+    const newAvail = (product.availability || 0) - qty;
 
-  const { error: updateError } = await supabase
-    .from('inventory_parts')
-    .update({
-      sold_quantity: newSold,
-      availability: newAvail,
-      modified: new Date().toISOString(),
-    })
-    .eq('id', product.id);
+    const { error: updateError } = await supabase
+      .from('inventory_parts')
+      .update({
+        sold_quantity: newSold,
+        availability: newAvail,
+        modified: new Date().toISOString(),
+      })
+      .eq('id', product.id);
 
-  if (updateError) {
-    Swal.fire('Error', `Failed to update sold quantity: ${updateError.message}`, 'error');
-    return;
-  }
+    if (updateError) {
+      Swal.fire('Error', `Failed to update sold quantity: ${updateError.message}`, 'error');
+      return;
+    }
 
-  // ✅ Log the sale in sales_history table
-  const { error: insertError } = await supabase
-    .from('sales_history')
-    .insert([
-      {
-        part_id: product.id,       // ✅ Use correct part ID
-        date_sold: new Date(),     // ✅ Matches your table column
-        quantity_sold: qty,        // ✅ Correct sold amount
-      },
-    ]);
+    const { error: insertError } = await supabase
+      .from('sales_history')
+      .insert([
+        {
+          part_id: product.id,
+          date_sold: new Date(),
+          quantity_sold: qty,
+        },
+      ]);
 
-  if (insertError) {
-    console.error('Sales log error:', insertError);
-    Swal.fire(
-      'Warning',
-      `Updated stock but failed to log sale history: ${insertError.message}`,
-      'warning'
-    );
-  } else {
-    Swal.fire('Success', `Marked ${qty} as sold and logged to sales history.`, 'success');
-  }
+    if (insertError) {
+      console.error('Sales log error:', insertError);
+      Swal.fire(
+        'Warning',
+        `Updated stock but failed to log sale history: ${insertError.message}`,
+        'warning'
+      );
+    } else {
+      Swal.fire('Success', `Marked ${qty} as sold and logged to sales history.`, 'success');
+    }
 
-  // ✅ Refresh the products table and graph data
-  fetchProducts();
-};
-
-
+    fetchProducts();
+  };
 
   const handleSaveProduct = async () => {
     const brand = newProduct.brand || '';
@@ -250,8 +260,8 @@ const handleMarkAsSold = async (product) => {
     setNewProduct({
       brand: toEdit.brand || '',
       model: toEdit.model || toEdit.name || '',
-      added_quantity: toEdit.added_quantity ?? toEdit.added ?? toEdit.availability ?? 0,
-      sold_quantity: toEdit.sold_quantity ?? toEdit.sold ?? 0,
+      added_quantity: toEdit.added_quantity ?? 0,
+      sold_quantity: toEdit.sold_quantity ?? 0,
       availability: toEdit.availability ?? 0,
       price: toEdit.price ?? '',
       category: toEdit.category ?? '',
@@ -260,15 +270,30 @@ const handleMarkAsSold = async (product) => {
     setShowModal(true);
   };
 
-  const filteredProducts = products.filter((product) => {
-    const searchText = (search || '').toLowerCase();
-    const modelName = (product.model || product.name || '').toString().toLowerCase();
-    const brandName = (product.brand || '').toString().toLowerCase();
-    const matchesSearch = !searchText || modelName.includes(searchText) || brandName.includes(searchText);
-    const matchesCategory = category === 'All' || product.category === category;
-    const matchesUnit = unit === 'All' || product.unit === unit;
-    return matchesSearch && matchesCategory && matchesUnit;
-  });
+  // Helper that normalizes strings (trim + fallback)
+  const normalize = (str) => (str || '').toString().trim();
+
+  // Sort alphabetically by brand (case-insensitive), tie-break by model
+  const filteredProducts = products
+    .filter((product) => {
+      const searchText = (search || '').toLowerCase();
+      const modelName = (product.model || product.name || '').toString().toLowerCase();
+      const brandName = (product.brand || '').toString().toLowerCase();
+      const matchesSearch = !searchText || modelName.includes(searchText) || brandName.includes(searchText);
+      const matchesCategory = category === 'All' || product.category === category;
+      const matchesUnit = unit === 'All' || product.unit === unit;
+      return matchesSearch && matchesCategory && matchesUnit;
+    })
+    .sort((a, b) => {
+      const aBrand = normalize(a.brand).toLowerCase();
+      const bBrand = normalize(b.brand).toLowerCase();
+      const brandCompare = aBrand.localeCompare(bBrand, undefined, { sensitivity: 'base' });
+      if (brandCompare !== 0) return brandCompare;
+      // Tie-breaker: model
+      const aModel = normalize(a.model || a.name).toLowerCase();
+      const bModel = normalize(b.model || b.name).toLowerCase();
+      return aModel.localeCompare(bModel, undefined, { sensitivity: 'base' });
+    });
 
   const allVisibleSelected = filteredProducts.length > 0 && selected.length === filteredProducts.length;
 
@@ -379,18 +404,13 @@ const handleMarkAsSold = async (product) => {
 
               <div>{product.brand || ''}</div>
               <div>{product.model || product.name || ''}</div>
-              <div>{product.added_quantity ?? product.added ?? ''}</div>
-              <div>{product.sold_quantity ?? product.sold ?? 0}</div>
-              <div>
-                {product.availability ??
-                  (product.added_quantity ?? product.added ?? 0) -
-                    (product.sold_quantity ?? product.sold ?? 0)}
-              </div>
+              <div>{product.added_quantity ?? ''}</div>
+              <div>{product.sold_quantity ?? 0}</div>
+              <div>{product.availability ?? 0}</div>
               <div>₱{product.price?.toLocaleString?.() ?? product.price}</div>
               <div>{product.category ?? ''}</div>
               <div>{product.unit ?? ''}</div>
 
-              {/* ✅ Action buttons */}
               <div>
                 <button
                   className="add-btn"
@@ -401,10 +421,10 @@ const handleMarkAsSold = async (product) => {
                 </button>
                 <button
                   className="delete-selected-btn"
-                  style={{ background: '#3b82f6' }}
+                  style={{ background: '#ff0000ff' }}
                   onClick={() => handleMarkAsSold(product)}
                 >
-                  Sold
+                  - Sold
                 </button>
               </div>
             </div>

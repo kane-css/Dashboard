@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { supabase } from "../../supabase";
 import Swal from "sweetalert2";
-
+import "../auth/ResetPassword.css";
+ 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -21,7 +22,6 @@ export default function ForgotPassword() {
     setLoading(true);
     const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Store the code temporarily in Supabase (custom table)
     const { error } = await supabase.from("password_reset_codes").insert([
       {
         email,
@@ -48,7 +48,7 @@ export default function ForgotPassword() {
   };
 
   // ✅ Step 2: Verify reset code
-  const handleVerifyCode = async () => {
+  const handleVerifyCode = () => {
     if (enteredCode.trim() !== code) {
       Swal.fire("Error", "The code you entered is incorrect.", "error");
       return;
@@ -88,17 +88,8 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: 400,
-        margin: "80px auto",
-        padding: 24,
-        borderRadius: 12,
-        boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-        backgroundColor: "#fff",
-      }}
-    >
-      <h2 style={{ textAlign: "center", marginBottom: 20 }}>Forgot Password</h2>
+    <div className="forgot-container">
+      <h2 className="forgot-title">Forgot Password</h2>
 
       {/* Step 1: Enter Email */}
       {stage === "email" && (
@@ -108,26 +99,12 @@ export default function ForgotPassword() {
             placeholder="Enter your email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            style={{
-              width: "100%",
-              padding: 10,
-              marginBottom: 10,
-              borderRadius: 8,
-              border: "1px solid #ccc",
-            }}
+            className="forgot-input"
           />
           <button
             onClick={handleSendResetCode}
             disabled={loading}
-            style={{
-              width: "100%",
-              padding: 10,
-              border: "none",
-              borderRadius: 8,
-              backgroundColor: "#007bff",
-              color: "#fff",
-              cursor: "pointer",
-            }}
+            className="forgot-button primary"
           >
             {loading ? "Sending..." : "Send Code"}
           </button>
@@ -142,26 +119,9 @@ export default function ForgotPassword() {
             placeholder="Enter the 6-digit code"
             value={enteredCode}
             onChange={(e) => setEnteredCode(e.target.value)}
-            style={{
-              width: "100%",
-              padding: 10,
-              marginBottom: 10,
-              borderRadius: 8,
-              border: "1px solid #ccc",
-            }}
+            className="forgot-input"
           />
-          <button
-            onClick={handleVerifyCode}
-            style={{
-              width: "100%",
-              padding: 10,
-              border: "none",
-              borderRadius: 8,
-              backgroundColor: "#28a745",
-              color: "#fff",
-              cursor: "pointer",
-            }}
-          >
+          <button onClick={handleVerifyCode} className="forgot-button success">
             Verify Code
           </button>
         </>
@@ -175,39 +135,16 @@ export default function ForgotPassword() {
             placeholder="New Password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
-            style={{
-              width: "100%",
-              padding: 10,
-              marginBottom: 10,
-              borderRadius: 8,
-              border: "1px solid #ccc",
-            }}
+            className="forgot-input"
           />
           <input
             type="password"
             placeholder="Confirm Password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            style={{
-              width: "100%",
-              padding: 10,
-              marginBottom: 10,
-              borderRadius: 8,
-              border: "1px solid #ccc",
-            }}
+            className="forgot-input"
           />
-          <button
-            onClick={handleResetPassword}
-            style={{
-              width: "100%",
-              padding: 10,
-              border: "none",
-              borderRadius: 8,
-              backgroundColor: "#007bff",
-              color: "#fff",
-              cursor: "pointer",
-            }}
-          >
+          <button onClick={handleResetPassword} className="forgot-button primary">
             Reset Password
           </button>
         </>

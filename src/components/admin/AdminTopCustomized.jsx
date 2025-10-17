@@ -11,27 +11,14 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-export default function AdminTopCustomized() {
+export default function AdminTopCustomized({ isDark }) {
   const [dateFilter, setDateFilter] = useState("Last 3 days");
   const [category, setCategory] = useState("All Categories");
   const [unit, setUnit] = useState("All Units");
   const [parts, setParts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [theme, setTheme] = useState(document.documentElement.getAttribute("data-theme"));
 
-  useEffect(() => {
-    const observer = new MutationObserver(() => {
-      setTheme(document.documentElement.getAttribute("data-theme"));
-    });
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["data-theme"],
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
+  // 🧠 Fetch data from Supabase
   useEffect(() => {
     const fetchMostViewedParts = async () => {
       setLoading(true);
@@ -67,8 +54,8 @@ export default function AdminTopCustomized() {
   }, [dateFilter, category, unit]);
 
   return (
-    <div className="admin-topcustomized-container no-bg">
-      {/* FILTER SECTION */}
+    <main className={`admin-topcustomized-main ${isDark ? "dark" : ""}`}>
+      {/* === FILTER SECTION === */}
       <div className="admin-filter-box">
         <div className="filter-group">
           <label>Date</label>
@@ -100,48 +87,50 @@ export default function AdminTopCustomized() {
         </div>
       </div>
 
-      {/* CHART SECTION */}
-      <div className="admin-chart-box chart-box">
-        <h3>Top 10 Most Viewed Parts</h3>
+      {/* === CHART SECTION === */}
+      <div className="admin-chart-box">
+        <h2>Top 10 Most Viewed Parts</h2>
         <div className="chart-inner-box">
           {loading ? (
             <p>Loading chart...</p>
           ) : parts.length === 0 ? (
             <p>No data available for selected filters.</p>
           ) : (
-            <ResponsiveContainer
-              width="100%"
-              height={400}
-              className={theme === "dark" ? "dark-chart" : ""}
-            >
+            <ResponsiveContainer width="100%" height={400}>
               <BarChart
                 data={parts}
                 margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
-                barCategoryGap="20%"
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke={isDark ? "#333" : "#ccc"}
+                />
                 <XAxis
                   dataKey="model"
                   interval={0}
                   angle={-25}
                   textAnchor="end"
-                  tick={{ fontSize: 12, fill: "var(--text-color)" }}
+                  tick={{ fontSize: 12, fill: isDark ? "#eee" : "#333" }}
                 />
-                <YAxis tick={{ fill: "var(--text-color)" }} />
+                <YAxis tick={{ fill: isDark ? "#eee" : "#333" }} />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "var(--card-bg)",
-                    color: "var(--text-color)",
-                    border: "1px solid var(--border-color)",
-                    borderRadius: "6px",
+                    backgroundColor: isDark ? "#2a2a2a" : "#fff",
+                    color: isDark ? "#fff" : "#111",
+                    borderRadius: "8px",
+                    border: isDark ? "1px solid #444" : "1px solid #ccc",
                   }}
                 />
-                <Bar dataKey="part_views" fill="var(--chart-bar)" radius={[4, 4, 0, 0]} />
+                <Bar
+                  dataKey="part_views"
+                  fill={isDark ? "#00e0c6" : "#007bff"}
+                  radius={[6, 6, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           )}
         </div>
       </div>
-    </div>
+    </main>
   );
 }

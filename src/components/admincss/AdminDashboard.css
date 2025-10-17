@@ -1,8 +1,93 @@
-.admin-dashboard-container {
-  transition: background-color 0.3s ease, color 0.3s ease;
+/* === Base container === */
+.admin-topcustomized-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  color: var(--text-color);
+  background: var(--bg-color);
+  transition: background 0.3s, color 0.3s;
 }
 
-.admin-dashboard-container.dark {
-  background-color: #121212;
-  color: #f1f1f1;
+.admin-filter-box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  background: var(--card-bg);
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-color);
+  transition: background 0.3s, border 0.3s;
+}
+
+.filter-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+.filter-group label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+  color: var(--text-color);
+}
+
+.filter-group select {
+  width: 100%;
+  padding: 0.6rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  color: var(--text-color);
+  transition: background 0.3s, color 0.3s, border 0.3s;
+}
+
+/* === Chart box === */
+.admin-chart-box {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 1.2rem;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: background 0.3s, border 0.3s;
+}
+
+.admin-chart-box h3 {
+  text-align: center;
+  font-size: 1rem;
+  color: var(--accent-color);
+  margin-bottom: 1rem;
+}
+
+.chart-inner-box {
+  width: 100%;
+  height: 420px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* === LIGHT THEME === */
+:root {
+  --bg-color: #f5f5f5;
+  --card-bg: #ffffff;
+  --input-bg: #f0f0f0;
+  --text-color: #222;
+  --border-color: #ccc;
+  --chart-bar: #007bff;
+  --accent-color: #007bff;
+}
+
+/* === DARK THEME === */
+:root.dark,
+[data-theme="dark"] {
+  --bg-color: #121212;
+  --card-bg: #1e1e1e;
+  --input-bg: #2a2a2a;
+  --text-color: #f0f0f0;
+  --border-color: #333;
+  --chart-bar: #4dabf7;
+  --accent-color: #4dabf7;
 }

@@ -1,4 +1,6 @@
-/* ========== GENERAL DASHBOARD CONTAINER ========== */
+/* ================================
+   GENERAL DASHBOARD CONTAINER
+   ================================ */
 .owner-dashboard-container {
   display: flex;
   min-height: 100vh;
@@ -11,8 +13,10 @@ body.dark .owner-dashboard-container {
   color: #f5f5f5;
 }
 
-/* ========== MAIN CONTENT AREA ========== */
-.owner-dashboard-container main {
+/* ================================
+   MAIN CONTENT AREA
+   ================================ */
+.owner-dashboard-main {
   flex-grow: 1;
   padding: 2rem;
   background-color: #ffffff;
@@ -23,41 +27,124 @@ body.dark .owner-dashboard-container {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-body.dark .owner-dashboard-container main {
-  background-color: #1e1e1e;
+body.dark .owner-dashboard-main {
+  background-color: #1a1a1a;
   color: #f5f5f5;
   box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
 }
 
-/* ========== TITLES ========== */
-.owner-dashboard-container h1 {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 1.5rem;
+/* ================================
+   TABLE + INVENTORY SECTION
+   ================================ */
+body.dark .inventory-container {
+  background-color: #121212;
+  color: #e5e5e5;
 }
 
-.owner-dashboard-container h2 {
-  font-size: 1.4rem;
-  margin-bottom: 1rem;
-  font-weight: 600;
+body.dark .inventory-card {
+  background-color: #1a1a1a;
+  color: #f5f5f5;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
 }
 
-/* ========== CHART AREA ========== */
-.dashboard-chart {
+body.dark .inventory-header {
+  background: #222;
+  color: #f3f3f3;
+  border-bottom: 1px solid #333;
+}
+
+body.dark .inventory-row {
+  background: #151515;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+body.dark .inventory-row:hover {
+  background: #202020;
+}
+
+/* ================================
+   INPUTS & DROPDOWNS
+   ================================ */
+body.dark .inventory-search,
+body.dark .inventory-dropdown,
+body.dark input,
+body.dark select {
+  background: #1f1f1f;
+  color: #f3f3f3;
+  border: 1px solid #333;
+}
+
+/* ================================
+   BUTTONS
+   ================================ */
+body.dark .add-btn {
+  background-color: #333;
+  color: #fff;
+}
+body.dark .add-btn:hover {
+  background-color: #444;
+}
+
+body.dark .delete-selected-btn {
+  background-color: #a11;
+}
+body.dark .delete-selected-btn:hover:not(:disabled) {
+  background-color: #d22;
+}
+
+body.dark .add-stock-btn {
+  background-color: #15803d;
+}
+body.dark .add-stock-btn:hover {
+  background-color: #166534;
+}
+
+body.dark .sold-btn {
+  background-color: #1d4ed8;
+}
+body.dark .sold-btn:hover {
+  background-color: #1e40af;
+}
+
+/* ================================
+   MODAL
+   ================================ */
+body.dark .modal-content {
+  background: #1a1a1a;
+  color: #f3f3f3;
+}
+body.dark .modal-body input,
+body.dark .modal-body select {
+  background: #222;
+  color: #eee;
+  border: 1px solid #333;
+}
+body.dark .close-btn {
+  color: #aaa;
+}
+body.dark .close-btn:hover {
+  color: #fff;
+}
+
+/* ================================
+   CHART SECTION
+   ================================ */
+.chart-section {
   background-color: #f4f4f4;
-  padding: 50px;
+  padding: 1.5rem;
   border-radius: 8px;
-  text-align: center;
-  color: #333;
+  margin-bottom: 2rem;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-body.dark .dashboard-chart {
+body.dark .chart-section {
   background-color: #2a2a2a;
   color: #ccc;
 }
 
-/* ========== RECHARTS TOOLTIP (OVERRIDE DEFAULT STYLE) ========== */
+/* ================================
+   TOOLTIP
+   ================================ */
 .recharts-tooltip-wrapper {
   font-size: 0.9rem;
 }
@@ -74,4 +161,14 @@ body.dark .dashboard-chart {
 body.dark .recharts-tooltip-wrapper .recharts-default-tooltip {
   --tooltip-bg: #333;
   --tooltip-text: #fff;
+}
+
+/* ================================
+   TRANSITION
+   ================================ */
+.inventory-container,
+.inventory-card,
+.inventory-row,
+.modal-content {
+  transition: background 0.3s ease, color 0.3s ease;
 }

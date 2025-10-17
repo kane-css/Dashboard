@@ -25,8 +25,8 @@ export default function CustomizedParts() {
 
       const { data, error } = await supabase
         .from("inventory_parts")
-        .select("id, model, category, unit, part_views")
-        .order("part_views", { ascending: false })
+        .select("id, model, category, unit, part_views, brand")
+        .order("brand", { ascending: true }) // alphabetical by brand
         .limit(10);
 
       if (error) {
@@ -55,7 +55,7 @@ export default function CustomizedParts() {
 
   return (
     <div className="custom-container">
-      {/* Filters */}
+      {/* Filter Section */}
       <div className="custom-filter-box">
         <div className="filter-group">
           <label>Date</label>
@@ -93,7 +93,7 @@ export default function CustomizedParts() {
         </div>
       </div>
 
-      {/* Summary Boxes (moved below filters) */}
+      {/* Summary Boxes */}
       <div className="summary-box">
         <div className="summary-item">
           <h3>{stats.week}</h3>
@@ -105,39 +105,41 @@ export default function CustomizedParts() {
         </div>
       </div>
 
-      {/* Top 10 Most Viewed Parts Chart */}
+      {/* Chart */}
       <div className="chart-container">
-        <h3>Top 10 Most Viewed Parts</h3>
+        <h3>Top 9 Most Viewed Parts</h3>
 
         {loading ? (
-          <p>Loading chart...</p>
+          <p className="loading-text">Loading chart...</p>
         ) : parts.length === 0 ? (
-          <p>No parts found for the selected filters.</p>
+          <p className="no-data-text">No parts found for the selected filters.</p>
         ) : (
           <ResponsiveContainer width="100%" height={400}>
             <BarChart
               data={parts}
-              margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
-              barCategoryGap="20%"
+              margin={{ top: 20, right: 30, left: 20, bottom: 100 }}
+              barCategoryGap="25%"
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#ccc" />
               <XAxis
                 dataKey="model"
                 interval={0}
-                angle={-25}
+                angle={-45}
                 textAnchor="end"
-                tick={{ fontSize: 12, fill: "#ccc" }}
+                height={100}
+                tick={{ fontSize: 11, fill: "#555" }}
               />
-              <YAxis tick={{ fill: "#ccc" }} />
+              <YAxis tick={{ fill: "#555" }} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "#1e1e1e",
                   color: "#fff",
                   border: "none",
                   borderRadius: "6px",
+                  padding: "10px",
                 }}
               />
-              <Bar dataKey="part_views" fill="#82ca9d" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="part_views" fill="#4CAF50" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         )}

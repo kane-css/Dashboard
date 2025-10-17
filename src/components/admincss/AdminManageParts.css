@@ -1,201 +1,100 @@
 /* ================================
-   Admin Manage Parts (Pure White/Black)
+   Dark Mode Styles (manual toggle)
    ================================ */
 
-/* ---------- Light Mode (Default: White) ---------- */
-:root {
-  --bg-color: #ffffff;
-  --card-bg: #ffffff;
-  --text-color: #000000;
-  --text-color-secondary: #333333;
-  --header-bg: #ffffff;
-  --header-text: #000000;
-  --row-bg: #ffffff;
-  --row-hover: #f2f2f2;
-  --border-color: #d1d1d1;
-  --input-bg: #ffffff;
-  --shadow-color: 0 2px 6px rgba(0, 0, 0, 0.08);
+/* Add this class dynamically via JS or React: document.body.classList.toggle("dark-mode") */
+body.dark-mode,
+.dark-mode .inventory-container {
+  background: #0a0a0a;
+  color: #e5e5e5;
 }
 
-/* ---------- Dark Mode (Manual Toggle) ---------- */
-body.dark,
-body.dark-mode {
-  --bg-color: #000000;
-  --card-bg: #000000;
-  --text-color: #ffffff;
-  --text-color-secondary: #cccccc;
-  --header-bg: #000000;
-  --header-text: #ffffff;
-  --row-bg: #000000;
-  --row-hover: #1a1a1a;
-  --border-color: #333333;
-  --input-bg: #000000;
-  --shadow-color: 0 2px 6px rgba(255, 255, 255, 0.05);
+/* Card */
+.dark-mode .inventory-card {
+  background: #1a1a1a;
+  color: #e5e5e5;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
 }
 
-/* --- Main Container --- */
-.inventory-container {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 20px;
-  background: var(--bg-color);
-  min-height: 100vh;
-  transition: background 0.3s ease, color 0.3s ease;
+/* Header & Rows */
+.dark-mode .inventory-header {
+  background: #222;
+  color: #f3f3f3;
+  border-bottom: 1px solid #333;
 }
 
-.inventory-card {
-  background: var(--card-bg);
-  border-radius: 12px;
-  box-shadow: var(--shadow-color);
-  width: 100%;
-  max-width: 1200px;
-  padding: 20px;
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-  transition: background 0.3s ease, color 0.3s ease;
+.dark-mode .inventory-row {
+  background: #151515;
+  border-bottom: 1px solid #2a2a2a;
+}
+.dark-mode .inventory-row:hover {
+  background: #202020;
 }
 
-/* --- Search and Dropdown --- */
-.inventory-controls {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
+/* Inputs & dropdowns */
+.dark-mode .inventory-search,
+.dark-mode .inventory-dropdown,
+.dark-mode input,
+.dark-mode select {
+  background: #1f1f1f;
+  color: #f3f3f3;
+  border: 1px solid #333;
 }
 
-.inventory-search,
-.inventory-dropdown {
-  flex: 1;
-  padding: 8px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 14px;
-  background: var(--input-bg);
-  color: var(--text-color);
-  transition: all 0.2s ease;
+/* Add button */
+.dark-mode .add-btn {
+  background-color: #333;
+  color: #fff;
+}
+.dark-mode .add-btn:hover {
+  background-color: #444;
 }
 
-.inventory-search:focus {
-  outline: none;
-  border-color: var(--text-color);
+/* Delete selected button */
+.dark-mode .delete-selected-btn {
+  background-color: #a11;
+}
+.dark-mode .delete-selected-btn:hover:not(:disabled) {
+  background-color: #d22;
 }
 
-/* --- Buttons --- */
-.add-btn,
-.add-stock-btn,
-.sold-btn {
-  border: none;
-  border-radius: 10px;
-  font-size: 13px;
-  cursor: pointer;
-  padding: 8px 14px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  background: var(--text-color);
-  color: var(--card-bg);
+/* Action buttons */
+.dark-mode .add-stock-btn {
+  background-color: #15803d;
+}
+.dark-mode .add-stock-btn:hover {
+  background-color: #166534;
 }
 
-.add-btn:hover,
-.add-stock-btn:hover,
-.sold-btn:hover {
-  opacity: 0.8;
-  transform: translateY(-1px);
+.dark-mode .sold-btn {
+  background-color: #1d4ed8;
+}
+.dark-mode .sold-btn:hover {
+  background-color: #1e40af;
 }
 
-.delete-selected-btn {
-  background: red;
-  color: white;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: opacity 0.2s ease;
+/* Modal */
+.dark-mode .modal-content {
+  background: #1a1a1a;
+  color: #f3f3f3;
+}
+.dark-mode .modal-body input,
+.dark-mode .modal-body select {
+  background: #222;
+  color: #eee;
+  border: 1px solid #333;
+}
+.dark-mode .close-btn {
+  color: #aaa;
+}
+.dark-mode .close-btn:hover {
+  color: #fff;
 }
 
-.delete-selected-btn:hover {
-  opacity: 0.8;
-}
-
-/* --- Table Layout --- */
-.inventory-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.inventory-header,
-.inventory-row {
-  display: grid;
-  align-items: center;
-  grid-template-columns: 48px 1.2fr 2fr 1fr 80px 120px 120px 220px;
-}
-
-.inventory-header {
-  background: var(--header-bg);
-  color: var(--header-text);
-  font-weight: 600;
-  border-bottom: 1px solid var(--border-color);
-  padding: 10px 12px;
-}
-
-.inventory-row {
-  background: var(--row-bg);
-  border-bottom: 1px solid var(--border-color);
-  transition: background 0.2s ease;
-}
-
-.inventory-row:hover {
-  background: var(--row-hover);
-}
-
-.inventory-header > div,
-.inventory-row > div {
-  padding: 10px 12px;
-}
-
-/* Center alignment */
-.inventory-header > div:nth-child(1),
-.inventory-row > div:nth-child(1),
-.inventory-header > div:nth-child(5),
-.inventory-row > div:nth-child(5),
-.inventory-header > div:nth-child(6),
-.inventory-row > div:nth-child(6),
-.inventory-header > div:nth-child(8),
-.inventory-row > div:nth-child(8) {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* --- Modal --- */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
-}
-
+/* Optional: smooth transition */
+.inventory-container,
+.inventory-card,
+.inventory-row,
 .modal-content {
-  background: var(--card-bg);
-  border-radius: 12px;
-  padding: 20px;
-  width: 420px;
-  max-width: 95%;
-  box-shadow: var(--shadow-color);
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-}
-
-.modal-body input,
-.modal-body select {
-  background: var(--input-bg);
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 8px 10px;
+  transition: background 0.3s ease, color 0.3s ease;
 }

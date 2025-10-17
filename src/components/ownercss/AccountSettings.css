@@ -40,9 +40,16 @@
 }
 
 /* Button Colors */
-.btn-manage { background: #000; color: #fff; }
-.btn-edit-profile { background: #000; color: #fff; }
-.btn-logout { background: #a01a1a; color: #fff; }
+.btn-manage,
+.btn-edit-profile {
+  background: #000;
+  color: #fff;
+}
+
+.btn-logout {
+  background: #a01a1a;
+  color: #fff;
+}
 
 .btn-manage:hover,
 .btn-edit-profile:hover {
@@ -59,11 +66,12 @@
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   z-index: 999;
+  overflow: hidden; /* ✅ Prevent left-right scroll */
 }
 
 .modal-box {
@@ -73,13 +81,22 @@
   width: 420px;
   max-height: 85vh;
   overflow-y: auto;
+  overflow-x: hidden; /* ✅ Disable horizontal scrolling */
   box-shadow: 0px 5px 25px rgba(0, 0, 0, 0.25);
   animation: fadeIn 0.25s ease-in-out;
+  position: relative;
+  text-align: left;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .modal-box h2 {
@@ -124,10 +141,22 @@
   font-weight: 600;
   text-transform: capitalize;
 }
-.status-badge.active { background-color: #d1fae5; color: #065f46; }
-.status-badge.suspended { background-color: #fee2e2; color: #991b1b; }
-.status-badge.denied { background-color: #fef2f2; color: #b91c1c; }
-.status-badge.pending { background-color: #fef9c3; color: #854d0e; }
+.status-badge.active {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+.status-badge.suspended {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+.status-badge.denied {
+  background-color: #fef2f2;
+  color: #b91c1c;
+}
+.status-badge.pending {
+  background-color: #fef9c3;
+  color: #854d0e;
+}
 
 /* ===========================
    Actions
@@ -155,26 +184,61 @@
 }
 
 /* Action Button Colors */
-.btn-admin { background-color: #2563eb; color: #fff; }
-.btn-admin:hover { background-color: #1e40af; }
+.btn-admin {
+  background-color: #2563eb;
+  color: #fff;
+}
+.btn-admin:hover {
+  background-color: #1e40af;
+}
 
-.btn-owner { background-color: #16a34a; color: #fff; }
-.btn-owner:hover { background-color: #15803d; }
+.btn-owner {
+  background-color: #16a34a;
+  color: #fff;
+}
+.btn-owner:hover {
+  background-color: #15803d;
+}
 
-.btn-deny { background-color: #ef4444; color: #fff; }
-.btn-deny:hover { background-color: #b91c1c; }
+.btn-deny {
+  background-color: #ef4444;
+  color: #fff;
+}
+.btn-deny:hover {
+  background-color: #b91c1c;
+}
 
-.btn-status { background-color: #facc15; color: #111; }
-.btn-status:hover { background-color: #ca8a04; }
+.btn-status {
+  background-color: #facc15;
+  color: #111;
+}
+.btn-status:hover {
+  background-color: #ca8a04;
+}
 
-.btn-delete { background-color: #6b7280; color: #fff; }
-.btn-delete:hover { background-color: #4b5563; }
+.btn-delete {
+  background-color: #6b7280;
+  color: #fff;
+}
+.btn-delete:hover {
+  background-color: #4b5563;
+}
 
 /* ===========================
-   Edit Shop Profile Modal
+   Edit Shop Profile Modal (Fixed)
    =========================== */
+.edit-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 380px; /* ✅ Keeps modal compact */
+  margin: 0 auto; /* Centered horizontally */
+}
+
 .edit-modal input {
   width: 100%;
+  max-width: 340px; /* ✅ Prevents input from stretching too wide */
   padding: 12px;
   margin: 10px 0;
   border-radius: 10px;
@@ -183,15 +247,16 @@
   background-color: #fff;
   outline: none;
   transition: border-color 0.2s;
+  box-sizing: border-box;
 }
 
 .edit-modal input:focus {
   border-color: #000;
 }
 
-/* Buttons inside Edit Modal */
 .btn-update {
   width: 100%;
+  max-width: 340px; /* ✅ Same width as inputs */
   padding: 12px;
   background-color: #000;
   color: white;
@@ -207,6 +272,37 @@
 .btn-update:hover {
   background-color: #222;
 }
+
+.close-button {
+  width: 100%;
+  max-width: 340px; /* ✅ Keeps consistent width */
+  margin-top: 15px;
+  background-color: #e5e7eb;
+  color: #111;
+  border: none;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.close-button:hover {
+  background-color: #d1d5db;
+}
+
+/* ===========================
+   Modal Box Alignment Fix
+   =========================== */
+.modal-box.edit-modal {
+  margin: 0 auto;
+  transform: none;
+  left: auto;
+  top: auto;
+  overflow-x: hidden; /* ✅ Removes bottom scroll bar */
+}
+
 
 /* ===========================
    Close Button
@@ -229,7 +325,17 @@
 }
 
 /* ===========================
-   🌙 DARK MODE STYLES FOR MODALS
+   Fix Alignment for Edit Modal
+   =========================== */
+.modal-box.edit-modal {
+  margin: 0 auto;
+  transform: none;
+  left: auto;
+  top: auto;
+}
+
+/* ===========================
+   🌙 Dark Mode Styles
    =========================== */
 body.dark .modal-overlay {
   background-color: rgba(0, 0, 0, 0.8);
@@ -242,10 +348,6 @@ body.dark .modal-box {
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
 }
 
-body.dark .modal-box h2 {
-  color: #fff;
-}
-
 body.dark .modal-box input {
   background-color: #2a2a2a;
   color: #fff;
@@ -256,21 +358,12 @@ body.dark .modal-box input::placeholder {
   color: #aaa;
 }
 
-body.dark .modal-box button {
+body.dark .btn-update {
   background-color: #333;
   color: #fff;
-  border: 1px solid #555;
-}
-
-body.dark .modal-box button:hover {
-  background-color: #555;
 }
 
 body.dark .close-button {
   background-color: #333;
   color: #fff;
-}
-
-body.dark .close-button:hover {
-  background-color: #555;
 }

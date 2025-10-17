@@ -1,150 +1,235 @@
-import React, { useState, useEffect } from "react";
-import Swal from "sweetalert2";
+import React, { useState, useEffect } from 'react';
+import Swal from 'sweetalert2';
+import { supabase } from '../../supabase';
+import { X } from 'lucide-react';
 import "../admincss/AdminManageParts.css";
-import { supabase } from "../../supabase";
-import { X } from "lucide-react";
 
 export default function AdminManageParts() {
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("All");
-  const [unit, setUnit] = useState("All");
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('All');
+  const [unit, setUnit] = useState('All');
   const [products, setProducts] = useState([]);
-  const [selectedProducts, setSelectedProducts] = useState([]);
+  const [selected, setSelected] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editProduct, setEditProduct] = useState(null);
 
   const [newProduct, setNewProduct] = useState({
-    brand: "",
-    model: "",
-    availability: "",
-    price: "",
-    category: "",
-    unit: "",
+    brand: '',
+    model: '',
+    sold_quantity: '',
+    availability: '',
+    price: '',
+    category: '',
+    unit: '',
   });
 
+  // ✅ Fetch data on load
   useEffect(() => {
     fetchProducts();
   }, []);
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const mm = String(date.getMonth() + 1).padStart(2, "0");
-    const dd = String(date.getDate()).padStart(2, "0");
-    const yy = String(date.getFullYear()).slice(2);
-    return `${mm}/${dd}/${yy}`;
-  };
-
   const fetchProducts = async () => {
-    const { data, error } = await supabase.from("inventory_parts").select("*");
+    const { data, error } = await supabase.from('inventory_parts').select('*');
     if (error) {
-      Swal.fire("Error", "Failed to fetch products", "error");
+      console.error('Error fetching products:', error);
+      Swal.fire('Error', 'Failed to fetch products', 'error');
     } else {
-      const sorted = data.sort((a, b) =>
-        a.model.localeCompare(b.model, "en", { sensitivity: "base" })
-      );
-      setProducts(sorted);
+      setProducts(data || []);
     }
   };
 
-  const handleSelectProduct = (id) => {
-    setSelectedProducts((prev) =>
-      prev.includes(id) ? prev.filter((itemId) => itemId !== id) : [...prev, id]
+  const handleCheckbox = (id) => {
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
   };
 
-  const handleSelectAll = (checked) => {
-    if (checked) {
-      setSelectedProducts(filteredProducts.map((p) => p.id));
+  const handleSelectAll = (checked, list) => {
+    if (checked) setSelected(list.map((p) => p.id));
+    else setSelected([]);
+  };
+
+  const handleDelete = async () => {
+    if (selected.length === 0) {
+      Swal.fire('No selection', 'Please select products to delete', 'warning');
+      return;
+    }
+    const confirm = await Swal.fire({
+      title: 'Delete selected?',
+      text: 'This cannot be undone',
+      icon: 'warning',
+      showCancelButton: true,
+    });
+    if (!confirm.isConfirmed) return;
+
+    const { error } = await supabase
+      .from('inventory_parts')
+      .delete()
+      .in('id', selected);
+
+    if (error) {
+      Swal.fire('Error', 'Failed to delete products', 'error');
     } else {
-      setSelectedProducts([]);
+      Swal.fire('Deleted!', 'Selected products removed.', 'success');
+      setSelected([]);
+      fetchProducts();
     }
   };
 
-  const handleDeleteSelected = async () => {
-    if (selectedProducts.length === 0)
-      return Swal.fire("Notice", "No products selected.", "info");
-
-    const confirm = await Swal.fire({
-      title: "Delete selected products?",
-      text: "This action cannot be undone!",
-      icon: "warning",
+  // ✅ Add stock
+  const handleAddStock = async (product) => {
+    const { value } = await Swal.fire({
+      title: `Add stock to "${product.model || product.name || ''}"`,
+      input: 'number',
+      inputLabel: 'Enter quantity to add',
+      inputAttributes: { min: 1 },
       showCancelButton: true,
-      confirmButtonColor: "#dc2626",
-      confirmButtonText: "Yes, Delete All",
+    });
+    const qty = parseInt(value, 10);
+    if (!qty || qty <= 0) return;
+
+    const { data: latest, error: fetchError } = await supabase
+      .from('inventory_parts')
+      .select('availability')
+      .eq('id', product.id)
+      .single();
+
+    if (fetchError) {
+      Swal.fire('Error', 'Failed to fetch latest product data', 'error');
+      return;
+    }
+
+    const currentAvail = parseInt(latest?.availability ?? 0, 10);
+    const newAvail = currentAvail + qty;
+
+    const { error } = await supabase
+      .from('inventory_parts')
+      .update({
+        availability: newAvail,
+        modified: new Date().toISOString(),
+      })
+      .eq('id', product.id);
+
+    if (error) Swal.fire('Error', 'Failed to add stock', 'error');
+    else {
+      Swal.fire('Success', `Added ${qty} to stock.`, 'success');
+      fetchProducts();
+    }
+  };
+
+  // ✅ Mark as sold
+  const handleMarkAsSold = async (product) => {
+    const { value } = await Swal.fire({
+      title: `Mark "${product.model || product.name || ''}" as sold`,
+      input: 'number',
+      inputLabel: 'Enter quantity sold',
+      inputAttributes: { min: 1, max: product.availability || 0 },
+      showCancelButton: true,
     });
 
-    if (confirm.isConfirmed) {
-      const { error } = await supabase
-        .from("inventory_parts")
-        .delete()
-        .in("id", selectedProducts);
+    const qty = parseInt(value, 10);
+    if (!qty || qty <= 0) return;
 
-      if (error) {
-        Swal.fire("Error", "Failed to delete selected products.", "error");
-      } else {
-        Swal.fire("Deleted!", "Selected products removed.", "success");
-        setSelectedProducts([]);
-        fetchProducts();
-      }
+    if (qty > (product.availability || 0)) {
+      Swal.fire('Notice', `Only ${(product.availability || 0)} available.`, 'info');
+      return;
     }
+
+    const newSold = (product.sold_quantity || 0) + qty;
+    const newAvail = (product.availability || 0) - qty;
+
+    const { error: updateError } = await supabase
+      .from('inventory_parts')
+      .update({
+        sold_quantity: newSold,
+        availability: newAvail,
+        modified: new Date().toISOString(),
+      })
+      .eq('id', product.id);
+
+    if (updateError) {
+      Swal.fire(
+        'Error',
+        `Failed to update sold quantity: ${updateError.message}`,
+        'error'
+      );
+      return;
+    }
+
+    const { error: insertError } = await supabase.from('sales_history').insert([
+      {
+        part_id: product.id,
+        date_sold: new Date(),
+        quantity_sold: qty,
+      },
+    ]);
+
+    if (insertError) {
+      console.error('Sales log error:', insertError);
+      Swal.fire(
+        'Warning',
+        `Updated stock but failed to log sale history: ${insertError.message}`,
+        'warning'
+      );
+    } else {
+      Swal.fire('Success', `Marked ${qty} as sold and logged.`, 'success');
+    }
+
+    fetchProducts();
   };
 
-  const handleAddProduct = async () => {
-    if (
-      !newProduct.brand ||
-      !newProduct.model ||
-      !newProduct.category ||
-      !newProduct.unit ||
-      !newProduct.availability ||
-      !newProduct.price
-    ) {
-      return Swal.fire("Error", "Please fill all fields.", "error");
+  // ✅ Add/Edit product
+  const handleSaveProduct = async () => {
+    const brand = newProduct.brand || '';
+    const model = newProduct.model || newProduct.name || '';
+    const sold = parseInt(newProduct.sold_quantity || 0, 10);
+    const price = parseFloat(newProduct.price || 0);
+    const availability = parseInt(newProduct.availability || 0, 10);
+    const categoryVal = newProduct.category || '';
+    const unitVal = newProduct.unit || '';
+
+    if (!model || isNaN(price) || !categoryVal || !unitVal) {
+      Swal.fire(
+        'Incomplete Fields',
+        'Please fill required fields (Model, Price, Category, Unit).',
+        'warning'
+      );
+      return;
     }
 
-    const today = new Date().toISOString();
+    const payload = {
+      brand,
+      model,
+      sold_quantity: sold,
+      availability,
+      price,
+      category: categoryVal,
+      unit: unitVal,
+      modified: new Date().toISOString(),
+    };
 
     if (editProduct) {
-      // Update existing product
       const { error } = await supabase
-        .from("inventory_parts")
-        .update({
-          brand: newProduct.brand,
-          model: newProduct.model,
-          category: newProduct.category,
-          unit: newProduct.unit,
-          availability: parseInt(newProduct.availability),
-          price: parseFloat(newProduct.price),
-          modified: today,
-        })
-        .eq("id", editProduct.id);
-
+        .from('inventory_parts')
+        .update(payload)
+        .eq('id', editProduct.id);
       if (error) {
-        Swal.fire("Error", "Failed to update product.", "error");
+        Swal.fire('Error', `Failed to update product: ${error.message}`, 'error');
       } else {
-        Swal.fire("Updated!", "Product updated successfully!", "success");
+        Swal.fire('Updated', 'Product updated successfully', 'success');
         setShowModal(false);
         setEditProduct(null);
         resetForm();
         fetchProducts();
       }
     } else {
-      // Add new product
-      const { error } = await supabase.from("inventory_parts").insert([
-        {
-          brand: newProduct.brand,
-          model: newProduct.model,
-          category: newProduct.category,
-          unit: newProduct.unit,
-          availability: parseInt(newProduct.availability),
-          price: parseFloat(newProduct.price),
-          modified: today,
-        },
-      ]);
-
+      const { error } = await supabase
+        .from('inventory_parts')
+        .insert([payload]);
       if (error) {
-        Swal.fire("Error", "Failed to add product.", "error");
+        Swal.fire('Error', `Failed to add product: ${error.message}`, 'error');
       } else {
-        Swal.fire("Success", "Product added successfully!", "success");
+        Swal.fire('Added', 'Product added successfully', 'success');
         setShowModal(false);
         resetForm();
         fetchProducts();
@@ -152,68 +237,67 @@ export default function AdminManageParts() {
     }
   };
 
+  const handleTopEdit = () => {
+    if (selected.length !== 1) {
+      Swal.fire('Notice', 'Please select exactly one product to edit.', 'info');
+      return;
+    }
+    const toEdit = products.find((p) => p.id === selected[0]);
+    if (!toEdit) return Swal.fire('Error', 'Selected product not found', 'error');
+
+    setEditProduct(toEdit);
+    setNewProduct({
+      brand: toEdit.brand || '',
+      model: toEdit.model || toEdit.name || '',
+      sold_quantity: toEdit.sold_quantity ?? 0,
+      availability: toEdit.availability ?? 0,
+      price: toEdit.price ?? '',
+      category: toEdit.category ?? '',
+      unit: toEdit.unit ?? '',
+    });
+    setShowModal(true);
+  };
+
   const resetForm = () => {
     setNewProduct({
-      brand: "",
-      model: "",
-      availability: "",
-      price: "",
-      category: "",
-      unit: "",
+      brand: '',
+      model: '',
+      sold_quantity: '',
+      availability: '',
+      price: '',
+      category: '',
+      unit: '',
     });
   };
 
-  // ✅ Add Stock / Sold functions with custom input modal
-  const handleStockChange = async (product, action) => {
-    const { value: qty } = await Swal.fire({
-      title: action === "add" ? "Add Stock" : "Mark as Sold",
-      input: "number",
-      inputLabel: "Enter quantity",
-      inputPlaceholder: "e.g. 5",
-      inputAttributes: { min: 1 },
-      showCancelButton: true,
-      confirmButtonText: "Update",
-      confirmButtonColor: "#111827",
+  const normalize = (str) => (str || '').toString().trim();
+
+  const filteredProducts = products
+    .filter((product) => {
+      const searchText = (search || '').toLowerCase();
+      const modelName = (product.model || product.name || '').toString().toLowerCase();
+      const brandName = (product.brand || '').toString().toLowerCase();
+      const matchesSearch =
+        !searchText ||
+        modelName.includes(searchText) ||
+        brandName.includes(searchText);
+      const matchesCategory = category === 'All' || product.category === category;
+      const matchesUnit = unit === 'All' || product.unit === unit;
+      return matchesSearch && matchesCategory && matchesUnit;
+    })
+    .sort((a, b) => {
+      const aBrand = normalize(a.brand).toLowerCase();
+      const bBrand = normalize(b.brand).toLowerCase();
+      const brandCompare = aBrand.localeCompare(bBrand);
+      if (brandCompare !== 0) return brandCompare;
+      const aModel = normalize(a.model || a.name).toLowerCase();
+      const bModel = normalize(b.model || b.name).toLowerCase();
+      return aModel.localeCompare(bModel);
     });
 
-    if (!qty || qty <= 0) return;
-
-    const newAvailability =
-      action === "add"
-        ? product.availability + parseInt(qty)
-        : Math.max(product.availability - parseInt(qty), 0);
-
-    const today = new Date().toISOString();
-
-    const { error } = await supabase
-      .from("inventory_parts")
-      .update({
-        availability: newAvailability,
-        modified: today,
-      })
-      .eq("id", product.id);
-
-    if (error) {
-      Swal.fire("Error", "Failed to update stock.", "error");
-    } else {
-      Swal.fire(
-        "Success!",
-        `Stock ${action === "add" ? "increased" : "decreased"} by ${qty}.`,
-        "success"
-      );
-      fetchProducts();
-    }
-  };
-
-  const filteredProducts = products.filter((product) => {
-    const searchText = search.toLowerCase();
-    const matchesSearch =
-      product.model.toLowerCase().includes(searchText) ||
-      product.brand.toLowerCase().includes(searchText);
-    const matchesCategory = category === "All" || product.category === category;
-    const matchesUnit = unit === "All" || product.unit === unit;
-    return matchesSearch && matchesCategory && matchesUnit;
-  });
+  const allVisibleSelected =
+    filteredProducts.length > 0 &&
+    selected.length === filteredProducts.length;
 
   return (
     <div className="inventory-container">
@@ -247,32 +331,7 @@ export default function AdminManageParts() {
             <option>Nmax</option>
           </select>
 
-          <button
-            className="add-btn"
-            onClick={() => {
-              if (selectedProducts.length !== 1) {
-                Swal.fire(
-                  "Notice",
-                  "Please select exactly one product to edit.",
-                  "info"
-                );
-                return;
-              }
-              const productToEdit = products.find(
-                (p) => p.id === selectedProducts[0]
-              );
-              setEditProduct(productToEdit);
-              setNewProduct({
-                brand: productToEdit.brand,
-                model: productToEdit.model,
-                availability: productToEdit.availability,
-                price: productToEdit.price,
-                category: productToEdit.category,
-                unit: productToEdit.unit,
-              });
-              setShowModal(true);
-            }}
-          >
+          <button className="add-btn" onClick={handleTopEdit}>
             ✎ Edit Product
           </button>
 
@@ -289,62 +348,78 @@ export default function AdminManageParts() {
 
           <button
             className="delete-selected-btn"
-            onClick={handleDeleteSelected}
-            disabled={selectedProducts.length === 0}
+            onClick={handleDelete}
+            disabled={selected.length === 0}
           >
             Delete Selected
           </button>
         </div>
 
-        {/* Table */}
+        {/* TABLE */}
         <div className="inventory-table">
-          <div className="inventory-header">
+          <div
+            className="inventory-header"
+            style={{
+              gridTemplateColumns:
+                '48px 1.2fr 2fr 0.9fr 0.9fr 120px 120px 120px 150px',
+            }}
+          >
             <div>
               <input
                 type="checkbox"
-                checked={
-                  selectedProducts.length > 0 &&
-                  selectedProducts.length === filteredProducts.length
+                checked={allVisibleSelected}
+                onChange={(e) =>
+                  handleSelectAll(e.target.checked, filteredProducts)
                 }
-                onChange={(e) => handleSelectAll(e.target.checked)}
               />
             </div>
             <div>Brand</div>
             <div>Model Name</div>
-            <div>Unit</div>
-            <div>Availability</div>
+            <div>Sold</div>
+            <div>Available</div>
             <div>Price</div>
-            <div>Modified</div>
-            <div>Action</div>
+            <div>Category</div>
+            <div>Unit</div>
+            <div>Actions</div>
           </div>
 
           {filteredProducts.map((product) => (
-            <div className="inventory-row" key={product.id}>
+            <div
+              className="inventory-row"
+              key={product.id}
+              style={{
+                gridTemplateColumns:
+                  '48px 1.2fr 2fr 0.9fr 0.9fr 120px 120px 120px 150px',
+              }}
+            >
               <div>
                 <input
                   type="checkbox"
-                  checked={selectedProducts.includes(product.id)}
-                  onChange={() => handleSelectProduct(product.id)}
+                  checked={selected.includes(product.id)}
+                  onChange={() => handleCheckbox(product.id)}
                 />
               </div>
-              <div>{product.brand}</div>
-              <div>{product.model}</div>
-              <div>{product.unit}</div>
-              <div>{product.availability}</div>
-              <div>₱{product.price}</div>
-              <div>{formatDate(product.modified)}</div>
+              <div>{product.brand || ''}</div>
+              <div>{product.model || product.name || ''}</div>
+              <div>{product.sold_quantity ?? 0}</div>
+              <div>{product.availability ?? 0}</div>
+              <div>₱{product.price?.toLocaleString?.() ?? product.price}</div>
+              <div>{product.category ?? ''}</div>
+              <div>{product.unit ?? ''}</div>
               <div>
                 <button
-                  className="add-stock-btn"
-                  onClick={() => handleStockChange(product, "add")}
+                  className="add-btn"
+                  style={{ background: '#22c55e', marginRight: '5px' }}
+                  onClick={() => handleAddStock(product)}
                 >
-                  Add Stock
+                  + Stock
                 </button>
                 <button
-                  className="sold-btn"
-                  onClick={() => handleStockChange(product, "sold")}
+                  className="delete-selected-btn"
+                  style={{ background: '#ff0000ff' }}
+                  onClick={() => handleMarkAsSold(product)}
                 >
-                  Mark as Sold
+                  - Sold
                 </button>
               </div>
             </div>
@@ -352,12 +427,12 @@ export default function AdminManageParts() {
         </div>
       </div>
 
-      {/* Add/Edit Modal */}
+      {/* ADD/EDIT MODAL */}
       {showModal && (
         <div className="modal-overlay">
-          <div className="modal-content">
+          <div className="modal-content" style={{ width: 460 }}>
             <div className="modal-header">
-              <h2>{editProduct ? "Edit Product" : "Add Product"}</h2>
+              <h2>{editProduct ? 'Edit Product' : 'Add Product'}</h2>
               <button className="close-btn" onClick={() => setShowModal(false)}>
                 <X size={20} />
               </button>
@@ -382,10 +457,24 @@ export default function AdminManageParts() {
               />
               <input
                 type="number"
+                placeholder="Sold Quantity"
+                value={newProduct.sold_quantity}
+                onChange={(e) =>
+                  setNewProduct({
+                    ...newProduct,
+                    sold_quantity: e.target.value,
+                  })
+                }
+              />
+              <input
+                type="number"
                 placeholder="Availability"
                 value={newProduct.availability}
                 onChange={(e) =>
-                  setNewProduct({ ...newProduct, availability: e.target.value })
+                  setNewProduct({
+                    ...newProduct,
+                    availability: e.target.value,
+                  })
                 }
               />
               <input
@@ -421,8 +510,8 @@ export default function AdminManageParts() {
             </div>
 
             <div className="modal-footer">
-              <button className="add-btn" onClick={handleAddProduct}>
-                {editProduct ? "Save Changes" : "Save Product"}
+              <button className="add-btn" onClick={handleSaveProduct}>
+                {editProduct ? 'Save Changes' : 'Save Product'}
               </button>
             </div>
           </div>
