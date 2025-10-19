@@ -1,45 +1,78 @@
-import React, { useState, useEffect } from 'react';
-import Swal from 'sweetalert2';
-import { supabase } from '../../supabase';
-import { X } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import Swal from "sweetalert2";
+import { supabase } from "../../supabase";
+import { X } from "lucide-react";
 import "../ownercss/Inventory.css";
 
 export default function Inventory() {
-  const [search, setSearch] = useState('');
-  const [category, setCategory] = useState('All');
-  const [unit, setUnit] = useState('All');
-  const [products, setProducts] = useState([]);
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("All");
+  const [unit, setUnit] = useState("All");
+
+  // ✅ Load products from localStorage first
+  const [products, setProducts] = useState(() => {
+    const saved = localStorage.getItem("inventoryProducts");
+    return saved ? JSON.parse(saved) : [];
+  });
+
   const [selected, setSelected] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editProduct, setEditProduct] = useState(null);
 
   const [newProduct, setNewProduct] = useState({
-    brand: '',
-    model: '',
-    added_quantity: '',
-    sold_quantity: '',
-    availability: '',
-    price: '',
-    category: '',
-    unit: '',
+    brand: "",
+    model: "",
+    added_quantity: "",
+    sold_quantity: "",
+    availability: "",
+    price: "",
+    category: "",
+    unit: "",
   });
 
   useEffect(() => {
     fetchProducts();
   }, []);
 
+  // ✅ Save to localStorage whenever products change
+  useEffect(() => {
+    localStorage.setItem("inventoryProducts", JSON.stringify(products));
+  }, [products]);
+
+  // ✅ Fetch products and preserve frontend-only "added_quantity"
   const fetchProducts = async () => {
-    const { data, error } = await supabase.from('inventory_parts').select('*');
+    const { data, error } = await supabase.from("inventory_parts").select("*");
     if (error) {
-      console.error('Error fetching products:', error);
-      Swal.fire('Error', 'Failed to fetch products', 'error');
+      console.error("Error fetching products:", error);
+      customSwal("Error", "Failed to fetch products", "error");
     } else {
-      setProducts(data || []);
+      setProducts((prev) => {
+        const prevMap = new Map(prev.map((p) => [p.id, p.added_quantity || 0]));
+        return (data || []).map((item) => ({
+          ...item,
+          added_quantity: prevMap.get(item.id) || 0,
+        }));
+      });
     }
   };
 
+  // ✅ Custom SweetAlert with Dark Mode
+  const customSwal = (title, text, icon) => {
+    const isDarkMode = document.body.classList.contains("dark");
+    Swal.fire({
+      title,
+      text,
+      icon,
+      background: isDarkMode ? "#1e1e1e" : "#ffffff",
+      color: isDarkMode ? "#f1f1f1" : "#111111",
+      confirmButtonColor: isDarkMode ? "#3b82f6" : "#2563eb",
+    });
+  };
+
   const handleCheckbox = (id) => {
-    setSelected((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
   };
 
   const handleSelectAll = (checked, list) => {
@@ -49,253 +82,270 @@ export default function Inventory() {
 
   const handleDelete = async () => {
     if (selected.length === 0) {
-      Swal.fire('No selection', 'Please select products to delete', 'warning');
-      return;
+      return customSwal("No selection", "Please select products to delete", "warning");
     }
+    const isDarkMode = document.body.classList.contains("dark");
     const confirm = await Swal.fire({
-      title: 'Delete selected?',
-      text: 'This cannot be undone',
-      icon: 'warning',
+      title: "Delete selected?",
+      text: "This cannot be undone",
+      icon: "warning",
       showCancelButton: true,
+      background: isDarkMode ? "#1e1e1e" : "#ffffff",
+      color: isDarkMode ? "#f1f1f1" : "#111111",
     });
     if (!confirm.isConfirmed) return;
 
-    const { error } = await supabase.from('inventory_parts').delete().in('id', selected);
+    const { error } = await supabase
+      .from("inventory_parts")
+      .delete()
+      .in("id", selected);
     if (error) {
-      Swal.fire('Error', 'Failed to delete products', 'error');
+      customSwal("Error", "Failed to delete products", "error");
     } else {
-      Swal.fire('Deleted!', 'Selected products removed.', 'success');
+      customSwal("Deleted!", "Selected products removed.", "success");
       setSelected([]);
       fetchProducts();
     }
   };
 
-  const handleAddStock = async (product) => {
-    const { value } = await Swal.fire({
-      title: `Add stock to "${product.model || product.name || ''}"`,
-      input: 'number',
-      inputLabel: 'Enter quantity to add',
-      inputAttributes: { min: 1 },
-      showCancelButton: true,
-    });
-    const qty = parseInt(value, 10);
-    if (!qty || qty <= 0) return;
+  // ✅ + Stock
+  const handleAddStock = async (product, qtyOverride = null) => {
+    const isDarkMode = document.body.classList.contains("dark");
+    let qty = qtyOverride;
 
-    // Re-fetch the latest product availability to avoid concatenation issues
-    const { data: latest, error: fetchError } = await supabase
-      .from('inventory_parts')
-      .select('availability')
-      .eq('id', product.id)
-      .single();
-
-    if (fetchError) {
-      Swal.fire('Error', 'Failed to fetch latest product data', 'error');
-      return;
+    if (qty === null) {
+      const { value } = await Swal.fire({
+        title: `Add stock to "${product.model || ""}"`,
+        input: "number",
+        inputLabel: "Enter quantity to add",
+        inputAttributes: { min: 1 },
+        showCancelButton: true,
+        background: isDarkMode ? "#1e1e1e" : "#ffffff",
+        color: isDarkMode ? "#f1f1f1" : "#111111",
+      });
+      qty = parseInt(value, 10);
     }
 
-    const currentAvail = parseInt(latest?.availability ?? 0, 10);
+    if (!qty || qty <= 0) return;
+
+    const currentAvail = parseInt(product.availability || 0, 10);
+    const currentAdded = parseInt(product.added_quantity || 0, 10);
     const newAvail = currentAvail + qty;
+    const newAdded = currentAdded + qty;
+
+    const updatedProducts = products.map((p) =>
+      p.id === product.id
+        ? { ...p, added_quantity: newAdded, availability: newAvail }
+        : p
+    );
+    setProducts(updatedProducts);
 
     const { error } = await supabase
-      .from('inventory_parts')
-      .update({ availability: newAvail, modified: new Date().toISOString() })
-      .eq('id', product.id);
+      .from("inventory_parts")
+      .update({
+        availability: String(newAvail),
+        modified: new Date().toISOString(),
+      })
+      .eq("id", product.id);
 
-    if (error) Swal.fire('Error', 'Failed to add stock', 'error');
-    else {
-      Swal.fire('Success', `Added ${qty} to stock.`, 'success');
-      fetchProducts();
-    }
+    if (error)
+      customSwal("Error", "Failed to update stock in database", "error");
+    else if (qtyOverride === null)
+      customSwal("Success", `Added ${qty} to stock.`, "success");
   };
 
-  // Mark as sold + log to sales_history
+  // ✅ - Sold
   const handleMarkAsSold = async (product) => {
+    const isDarkMode = document.body.classList.contains("dark");
     const { value } = await Swal.fire({
-      title: `Mark "${product.model || product.name || ''}" as sold`,
-      input: 'number',
-      inputLabel: 'Enter quantity sold',
+      title: `Mark "${product.model || ""}" as sold`,
+      input: "number",
+      inputLabel: "Enter quantity sold",
       inputAttributes: { min: 1, max: product.availability || 0 },
       showCancelButton: true,
+      background: isDarkMode ? "#1e1e1e" : "#ffffff",
+      color: isDarkMode ? "#f1f1f1" : "#111111",
     });
 
     const qty = parseInt(value, 10);
     if (!qty || qty <= 0) return;
 
-    if (qty > (product.availability || 0)) {
-      Swal.fire('Notice', `Only ${(product.availability || 0)} available.`, 'info');
-      return;
+    const currentAvail = parseInt(product.availability || 0, 10);
+    const currentSold = parseInt(product.sold_quantity || 0, 10);
+
+    if (qty > currentAvail) {
+      return customSwal("Notice", `Only ${currentAvail} available.`, "info");
     }
 
-    // verify product exists
-    const { data: checkPart, error: checkError } = await supabase
-      .from('inventory_parts')
-      .select('id')
-      .eq('id', product.id)
-      .single();
+    const newAvail = currentAvail - qty;
+    const newSold = currentSold + qty;
 
-    if (checkError || !checkPart) {
-      Swal.fire('Error', 'Product not found in inventory_parts.', 'error');
-      return;
-    }
+    const updatedProducts = products.map((p) =>
+      p.id === product.id
+        ? { ...p, sold_quantity: newSold, availability: newAvail }
+        : p
+    );
+    setProducts(updatedProducts);
 
-    const newSold = (product.sold_quantity || 0) + qty;
-    const newAvail = (product.availability || 0) - qty;
-
-    const { error: updateError } = await supabase
-      .from('inventory_parts')
+    const { error } = await supabase
+      .from("inventory_parts")
       .update({
-        sold_quantity: newSold,
-        availability: newAvail,
+        sold_quantity: String(newSold),
+        availability: String(newAvail),
         modified: new Date().toISOString(),
       })
-      .eq('id', product.id);
+      .eq("id", product.id);
 
-    if (updateError) {
-      Swal.fire('Error', `Failed to update sold quantity: ${updateError.message}`, 'error');
-      return;
-    }
-
-    const { error: insertError } = await supabase
-      .from('sales_history')
-      .insert([
-        {
-          part_id: product.id,
-          date_sold: new Date(),
-          quantity_sold: qty,
-        },
-      ]);
-
-    if (insertError) {
-      console.error('Sales log error:', insertError);
-      Swal.fire(
-        'Warning',
-        `Updated stock but failed to log sale history: ${insertError.message}`,
-        'warning'
-      );
-    } else {
-      Swal.fire('Success', `Marked ${qty} as sold and logged to sales history.`, 'success');
-    }
-
-    fetchProducts();
+    if (error)
+      customSwal("Error", "Failed to update sold quantity", "error");
+    else customSwal("Success", `Marked ${qty} as sold.`, "success");
   };
 
   const handleSaveProduct = async () => {
-    const brand = newProduct.brand || '';
-    const model = newProduct.model || newProduct.name || '';
-    const added = parseInt(newProduct.added_quantity || 0, 10);
-    const sold = parseInt(newProduct.sold_quantity || 0, 10);
-    const price = parseFloat(newProduct.price || 0);
-    const availability = added - sold;
-    const categoryVal = newProduct.category || '';
-    const unitVal = newProduct.unit || '';
-
-    if (!model || (!added && added !== 0) || isNaN(price) || !categoryVal || !unitVal) {
-      Swal.fire('Incomplete Fields', 'Please fill required fields (Model, Added, Price, Category, Unit).', 'warning');
-      return;
+    const isDarkMode = document.body.classList.contains("dark");
+    if (
+      !newProduct.model ||
+      !newProduct.price ||
+      !newProduct.category ||
+      !newProduct.unit
+    ) {
+      return Swal.fire({
+        title: "Incomplete Fields",
+        text: "Please fill all required fields.",
+        icon: "warning",
+        background: isDarkMode ? "#1e1e1e" : "#ffffff",
+        color: isDarkMode ? "#f1f1f1" : "#111111",
+      });
     }
 
-    const payload = {
-      brand,
-      model,
-      added_quantity: added,
-      sold_quantity: sold,
-      availability,
-      price,
-      category: categoryVal,
-      unit: unitVal,
-      modified: new Date().toISOString(),
-    };
+    const priceValue =
+      parseFloat(String(newProduct.price).replace(/[₱,]/g, "")) || 0;
 
-    if (editProduct) {
-      const { error } = await supabase.from('inventory_parts').update(payload).eq('id', editProduct.id);
-      if (error) {
-        Swal.fire('Error', 'Failed to update product', 'error');
+    try {
+      if (editProduct) {
+        const addedQty = parseInt(newProduct.added_quantity || 0, 10);
+        const currentAvail = parseInt(editProduct.availability || 0, 10);
+        const newAvail = currentAvail + addedQty;
+
+        const updatedProducts = products.map((p) =>
+          p.id === editProduct.id
+            ? {
+                ...p,
+                brand: newProduct.brand,
+                model: newProduct.model,
+                added_quantity: (p.added_quantity || 0) + addedQty,
+                availability: newAvail,
+                price: priceValue,
+                category: newProduct.category,
+                unit: newProduct.unit,
+              }
+            : p
+        );
+        setProducts(updatedProducts);
+
+        const { error } = await supabase
+          .from("inventory_parts")
+          .update({
+            availability: String(newAvail),
+            brand: newProduct.brand,
+            model: newProduct.model,
+            price: priceValue,
+            category: newProduct.category,
+            unit: newProduct.unit,
+            modified: new Date().toISOString(),
+          })
+          .eq("id", editProduct.id);
+
+        if (error) throw error;
+        customSwal("Updated", "Product updated successfully", "success");
       } else {
-        Swal.fire('Updated', 'Product updated successfully', 'success');
-        setShowModal(false);
-        setEditProduct(null);
-        setNewProduct({
-          brand: '',
-          model: '',
-          added_quantity: '',
-          sold_quantity: '',
-          availability: '',
-          price: '',
-          category: '',
-          unit: '',
-        });
-        fetchProducts();
+        const addedQty = parseInt(newProduct.added_quantity || 0);
+        const soldQty = parseInt(newProduct.sold_quantity || 0);
+
+        const insertData = {
+          brand: newProduct.brand,
+          model: newProduct.model,
+          sold_quantity: String(soldQty),
+          availability: String(
+            addedQty - soldQty >= 0 ? addedQty - soldQty : 0
+          ),
+          price: priceValue,
+          category: newProduct.category,
+          unit: newProduct.unit,
+          created: new Date().toISOString(),
+          modified: new Date().toISOString(),
+        };
+
+        const { error } = await supabase
+          .from("inventory_parts")
+          .insert([insertData]);
+        if (error) throw error;
+
+        customSwal("Added", "Product added successfully", "success");
       }
-    } else {
-      const { error } = await supabase.from('inventory_parts').insert([payload]);
-      if (error) {
-        Swal.fire('Error', 'Failed to add product', 'error');
-      } else {
-        Swal.fire('Added', 'Product added successfully', 'success');
-        setShowModal(false);
-        setNewProduct({
-          brand: '',
-          model: '',
-          added_quantity: '',
-          sold_quantity: '',
-          availability: '',
-          price: '',
-          category: '',
-          unit: '',
-        });
-        fetchProducts();
-      }
+
+      setShowModal(false);
+      setEditProduct(null);
+      setNewProduct({
+        brand: "",
+        model: "",
+        added_quantity: "",
+        sold_quantity: "",
+        availability: "",
+        price: "",
+        category: "",
+        unit: "",
+      });
+      fetchProducts();
+    } catch (error) {
+      console.error("Save product error:", error.message);
+      customSwal("Error", "Failed to save product", "error");
     }
   };
 
   const handleTopEdit = () => {
     if (selected.length !== 1) {
-      Swal.fire('Notice', 'Please select exactly one product to edit.', 'info');
-      return;
+      return customSwal("Notice", "Please select exactly one product to edit.", "info");
     }
     const toEdit = products.find((p) => p.id === selected[0]);
-    if (!toEdit) return Swal.fire('Error', 'Selected product not found', 'error');
+    if (!toEdit) return customSwal("Error", "Selected product not found", "error");
 
     setEditProduct(toEdit);
     setNewProduct({
-      brand: toEdit.brand || '',
-      model: toEdit.model || toEdit.name || '',
-      added_quantity: toEdit.added_quantity ?? 0,
-      sold_quantity: toEdit.sold_quantity ?? 0,
-      availability: toEdit.availability ?? 0,
-      price: toEdit.price ?? '',
-      category: toEdit.category ?? '',
-      unit: toEdit.unit ?? '',
+      brand: toEdit.brand || "",
+      model: toEdit.model || "",
+      added_quantity: "",
+      sold_quantity: toEdit.sold_quantity || "",
+      price: toEdit.price || "",
+      category: toEdit.category || "",
+      unit: toEdit.unit || "",
     });
     setShowModal(true);
   };
 
-  // Helper that normalizes strings (trim + fallback)
-  const normalize = (str) => (str || '').toString().trim();
+  const normalize = (str) => (str || "").toString().trim();
 
-  // Sort alphabetically by brand (case-insensitive), tie-break by model
   const filteredProducts = products
     .filter((product) => {
-      const searchText = (search || '').toLowerCase();
-      const modelName = (product.model || product.name || '').toString().toLowerCase();
-      const brandName = (product.brand || '').toString().toLowerCase();
-      const matchesSearch = !searchText || modelName.includes(searchText) || brandName.includes(searchText);
-      const matchesCategory = category === 'All' || product.category === category;
-      const matchesUnit = unit === 'All' || product.unit === unit;
+      const searchText = (search || "").toLowerCase();
+      const matchesSearch =
+        !searchText ||
+        product.model?.toLowerCase().includes(searchText) ||
+        product.brand?.toLowerCase().includes(searchText);
+      const matchesCategory =
+        category === "All" || product.category === category;
+      const matchesUnit = unit === "All" || product.unit === unit;
       return matchesSearch && matchesCategory && matchesUnit;
     })
     .sort((a, b) => {
-      const aBrand = normalize(a.brand).toLowerCase();
-      const bBrand = normalize(b.brand).toLowerCase();
-      const brandCompare = aBrand.localeCompare(bBrand, undefined, { sensitivity: 'base' });
-      if (brandCompare !== 0) return brandCompare;
-      // Tie-breaker: model
-      const aModel = normalize(a.model || a.name).toLowerCase();
-      const bModel = normalize(b.model || b.name).toLowerCase();
-      return aModel.localeCompare(bModel, undefined, { sensitivity: 'base' });
+      const brandCompare = normalize(a.brand).localeCompare(normalize(b.brand));
+      return brandCompare !== 0
+        ? brandCompare
+        : normalize(a.model).localeCompare(normalize(b.model));
     });
 
-  const allVisibleSelected = filteredProducts.length > 0 && selected.length === filteredProducts.length;
+  const allVisibleSelected =
+    filteredProducts.length > 0 && selected.length === filteredProducts.length;
 
   return (
     <div className="inventory-container">
@@ -329,21 +379,23 @@ export default function Inventory() {
             <option>Nmax</option>
           </select>
 
-          <button className="add-btn" onClick={handleTopEdit}>✎ Edit Product</button>
+          <button className="add-btn" onClick={handleTopEdit}>
+            ✎ Edit Product
+          </button>
 
           <button
             className="add-btn"
             onClick={() => {
               setEditProduct(null);
               setNewProduct({
-                brand: '',
-                model: '',
-                added_quantity: '',
-                sold_quantity: '',
-                availability: '',
-                price: '',
-                category: '',
-                unit: '',
+                brand: "",
+                model: "",
+                added_quantity: "",
+                sold_quantity: "",
+                availability: "",
+                price: "",
+                category: "",
+                unit: "",
               });
               setShowModal(true);
             }}
@@ -365,18 +417,21 @@ export default function Inventory() {
           <div
             className="inventory-header"
             style={{
-              gridTemplateColumns: '48px 1.2fr 2fr 0.9fr 0.9fr 0.9fr 120px 120px 120px 150px',
+              gridTemplateColumns:
+                "40px 1fr 1.5fr 0.8fr 0.8fr 0.8fr 1fr 1fr 1fr 1.2fr",
             }}
           >
             <div>
               <input
                 type="checkbox"
                 checked={allVisibleSelected}
-                onChange={(e) => handleSelectAll(e.target.checked, filteredProducts)}
+                onChange={(e) =>
+                  handleSelectAll(e.target.checked, filteredProducts)
+                }
               />
             </div>
             <div>Brand</div>
-            <div>Model Name</div>
+            <div>Model</div>
             <div>Added</div>
             <div>Sold</div>
             <div>Available</div>
@@ -391,7 +446,8 @@ export default function Inventory() {
               className="inventory-row"
               key={product.id}
               style={{
-                gridTemplateColumns: '48px 1.2fr 2fr 0.9fr 0.9fr 0.9fr 120px 120px 120px 150px',
+                gridTemplateColumns:
+                  "40px 1fr 1.5fr 0.8fr 0.8fr 0.8fr 1fr 1fr 1fr 1.2fr",
               }}
             >
               <div>
@@ -402,26 +458,26 @@ export default function Inventory() {
                 />
               </div>
 
-              <div>{product.brand || ''}</div>
-              <div>{product.model || product.name || ''}</div>
-              <div>{product.added_quantity ?? ''}</div>
+              <div>{product.brand || ""}</div>
+              <div>{product.model || ""}</div>
+              <div>{product.added_quantity ?? 0}</div>
               <div>{product.sold_quantity ?? 0}</div>
               <div>{product.availability ?? 0}</div>
               <div>₱{product.price?.toLocaleString?.() ?? product.price}</div>
-              <div>{product.category ?? ''}</div>
-              <div>{product.unit ?? ''}</div>
+              <div>{product.category ?? ""}</div>
+              <div>{product.unit ?? ""}</div>
 
               <div>
                 <button
                   className="add-btn"
-                  style={{ background: '#22c55e', marginRight: '5px' }}
+                  style={{ background: "#22c55e", marginRight: "5px" }}
                   onClick={() => handleAddStock(product)}
                 >
                   + Stock
                 </button>
                 <button
                   className="delete-selected-btn"
-                  style={{ background: '#ff0000ff' }}
+                  style={{ background: "#ff0000ff" }}
                   onClick={() => handleMarkAsSold(product)}
                 >
                   - Sold
@@ -435,9 +491,12 @@ export default function Inventory() {
       {/* ADD/EDIT MODAL */}
       {showModal && (
         <div className="modal-overlay">
-          <div className="modal-content" style={{ width: 460 }}>
+          <div
+            className="modal-content"
+            style={{ width: 460, maxHeight: "80vh", overflowY: "auto" }}
+          >
             <div className="modal-header">
-              <h2>{editProduct ? 'Edit Product' : 'Add Product'}</h2>
+              <h2>{editProduct ? "Edit Product" : "Add Product"}</h2>
               <button className="close-btn" onClick={() => setShowModal(false)}>
                 <X size={20} />
               </button>
@@ -448,35 +507,53 @@ export default function Inventory() {
                 type="text"
                 placeholder="Brand"
                 value={newProduct.brand}
-                onChange={(e) => setNewProduct({ ...newProduct, brand: e.target.value })}
+                onChange={(e) =>
+                  setNewProduct({ ...newProduct, brand: e.target.value })
+                }
               />
               <input
                 type="text"
                 placeholder="Model Name"
                 value={newProduct.model}
-                onChange={(e) => setNewProduct({ ...newProduct, model: e.target.value })}
+                onChange={(e) =>
+                  setNewProduct({ ...newProduct, model: e.target.value })
+                }
               />
               <input
                 type="number"
                 placeholder="Added Quantity"
                 value={newProduct.added_quantity}
-                onChange={(e) => setNewProduct({ ...newProduct, added_quantity: e.target.value })}
+                onChange={(e) =>
+                  setNewProduct({
+                    ...newProduct,
+                    added_quantity: e.target.value,
+                  })
+                }
               />
               <input
                 type="number"
                 placeholder="Sold Quantity"
                 value={newProduct.sold_quantity}
-                onChange={(e) => setNewProduct({ ...newProduct, sold_quantity: e.target.value })}
+                onChange={(e) =>
+                  setNewProduct({
+                    ...newProduct,
+                    sold_quantity: e.target.value,
+                  })
+                }
               />
               <input
                 type="number"
                 placeholder="Price"
                 value={newProduct.price}
-                onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+                onChange={(e) =>
+                  setNewProduct({ ...newProduct, price: e.target.value })
+                }
               />
               <select
                 value={newProduct.category}
-                onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+                onChange={(e) =>
+                  setNewProduct({ ...newProduct, category: e.target.value })
+                }
               >
                 <option value="">Select Category</option>
                 <option>Swing Arm</option>
@@ -486,7 +563,9 @@ export default function Inventory() {
               </select>
               <select
                 value={newProduct.unit}
-                onChange={(e) => setNewProduct({ ...newProduct, unit: e.target.value })}
+                onChange={(e) =>
+                  setNewProduct({ ...newProduct, unit: e.target.value })
+                }
               >
                 <option value="">Select Unit</option>
                 <option>Aerox</option>
@@ -496,7 +575,7 @@ export default function Inventory() {
 
             <div className="modal-footer">
               <button className="add-btn" onClick={handleSaveProduct}>
-                {editProduct ? 'Save Changes' : 'Save Product'}
+                {editProduct ? "Save Changes" : "Save Product"}
               </button>
             </div>
           </div>

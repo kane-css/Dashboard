@@ -23,6 +23,16 @@ export default function AdminManageParts() {
     unit: '',
   });
 
+  // Helper to show SweetAlert with theme (dark or light) while preserving passed options.
+  const showSwal = (options) => {
+    const isDarkMode = document.body.classList.contains('dark');
+    const theme = {
+      background: isDarkMode ? '#1e1e1e' : '#ffffff',
+      color: isDarkMode ? '#f1f1f1' : '#111111',
+    };
+    return Swal.fire({ ...options, ...theme });
+  };
+
   // ✅ Fetch data on load
   useEffect(() => {
     fetchProducts();
@@ -32,7 +42,7 @@ export default function AdminManageParts() {
     const { data, error } = await supabase.from('inventory_parts').select('*');
     if (error) {
       console.error('Error fetching products:', error);
-      Swal.fire('Error', 'Failed to fetch products', 'error');
+      showSwal({ title: 'Error', text: 'Failed to fetch products', icon: 'error' });
     } else {
       setProducts(data || []);
     }
@@ -51,14 +61,16 @@ export default function AdminManageParts() {
 
   const handleDelete = async () => {
     if (selected.length === 0) {
-      Swal.fire('No selection', 'Please select products to delete', 'warning');
+      showSwal({ title: 'No selection', text: 'Please select products to delete', icon: 'warning' });
       return;
     }
-    const confirm = await Swal.fire({
+    const confirm = await showSwal({
       title: 'Delete selected?',
       text: 'This cannot be undone',
       icon: 'warning',
       showCancelButton: true,
+      confirmButtonColor: '#e63946',
+      cancelButtonColor: '#6b7280',
     });
     if (!confirm.isConfirmed) return;
 
@@ -68,23 +80,29 @@ export default function AdminManageParts() {
       .in('id', selected);
 
     if (error) {
-      Swal.fire('Error', 'Failed to delete products', 'error');
+      showSwal({ title: 'Error', text: 'Failed to delete products', icon: 'error' });
     } else {
-      Swal.fire('Deleted!', 'Selected products removed.', 'success');
+      showSwal({ title: 'Deleted!', text: 'Selected products removed.', icon: 'success', confirmButtonColor: '#4ade80' });
       setSelected([]);
       fetchProducts();
     }
   };
 
-  // ✅ Add stock
+  // ✅ Add stock (support dark/light in SweetAlert)
   const handleAddStock = async (product) => {
-    const { value } = await Swal.fire({
+    const { value } = await showSwal({
       title: `Add stock to "${product.model || product.name || ''}"`,
       input: 'number',
       inputLabel: 'Enter quantity to add',
       inputAttributes: { min: 1 },
       showCancelButton: true,
+      confirmButtonColor: '#4ade80',
+      cancelButtonColor: '#6b7280',
+      didOpen: () => {
+        // no-op but keeps SweetAlert normal behavior
+      },
     });
+
     const qty = parseInt(value, 10);
     if (!qty || qty <= 0) return;
 
@@ -95,7 +113,7 @@ export default function AdminManageParts() {
       .single();
 
     if (fetchError) {
-      Swal.fire('Error', 'Failed to fetch latest product data', 'error');
+      showSwal({ title: 'Error', text: 'Failed to fetch latest product data', icon: 'error' });
       return;
     }
 
@@ -110,28 +128,31 @@ export default function AdminManageParts() {
       })
       .eq('id', product.id);
 
-    if (error) Swal.fire('Error', 'Failed to add stock', 'error');
-    else {
-      Swal.fire('Success', `Added ${qty} to stock.`, 'success');
+    if (error) {
+      showSwal({ title: 'Error', text: 'Failed to add stock', icon: 'error' });
+    } else {
+      showSwal({ title: 'Success', text: `Added ${qty} to stock.`, icon: 'success', confirmButtonColor: '#4ade80' });
       fetchProducts();
     }
   };
 
-  // ✅ Mark as sold
+  // ✅ Mark as sold (support dark/light in SweetAlert)
   const handleMarkAsSold = async (product) => {
-    const { value } = await Swal.fire({
+    const { value } = await showSwal({
       title: `Mark "${product.model || product.name || ''}" as sold`,
       input: 'number',
       inputLabel: 'Enter quantity sold',
       inputAttributes: { min: 1, max: product.availability || 0 },
       showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
     });
 
     const qty = parseInt(value, 10);
     if (!qty || qty <= 0) return;
 
     if (qty > (product.availability || 0)) {
-      Swal.fire('Notice', `Only ${(product.availability || 0)} available.`, 'info');
+      showSwal({ title: 'Notice', text: `Only ${(product.availability || 0)} available.`, icon: 'info', confirmButtonColor: '#3b82f6' });
       return;
     }
 
@@ -148,11 +169,7 @@ export default function AdminManageParts() {
       .eq('id', product.id);
 
     if (updateError) {
-      Swal.fire(
-        'Error',
-        `Failed to update sold quantity: ${updateError.message}`,
-        'error'
-      );
+      showSwal({ title: 'Error', text: `Failed to update sold quantity: ${updateError.message}`, icon: 'error' });
       return;
     }
 
@@ -165,20 +182,19 @@ export default function AdminManageParts() {
     ]);
 
     if (insertError) {
-      console.error('Sales log error:', insertError);
-      Swal.fire(
-        'Warning',
-        `Updated stock but failed to log sale history: ${insertError.message}`,
-        'warning'
-      );
+      showSwal({
+        title: 'Warning',
+        text: `Updated stock but failed to log sale history: ${insertError.message}`,
+        icon: 'warning',
+      });
     } else {
-      Swal.fire('Success', `Marked ${qty} as sold and logged.`, 'success');
+      showSwal({ title: 'Success', text: `Marked ${qty} as sold and logged.`, icon: 'success', confirmButtonColor: '#4ade80' });
     }
 
     fetchProducts();
   };
 
-  // ✅ Add/Edit product
+  // ✅ Add/Edit product (unchanged behavior, Swal themed)
   const handleSaveProduct = async () => {
     const brand = newProduct.brand || '';
     const model = newProduct.model || newProduct.name || '';
@@ -189,11 +205,11 @@ export default function AdminManageParts() {
     const unitVal = newProduct.unit || '';
 
     if (!model || isNaN(price) || !categoryVal || !unitVal) {
-      Swal.fire(
-        'Incomplete Fields',
-        'Please fill required fields (Model, Price, Category, Unit).',
-        'warning'
-      );
+      showSwal({
+        title: 'Incomplete Fields',
+        text: 'Please fill required fields (Model, Price, Category, Unit).',
+        icon: 'warning',
+      });
       return;
     }
 
@@ -214,22 +230,20 @@ export default function AdminManageParts() {
         .update(payload)
         .eq('id', editProduct.id);
       if (error) {
-        Swal.fire('Error', `Failed to update product: ${error.message}`, 'error');
+        showSwal({ title: 'Error', text: `Failed to update product: ${error.message}`, icon: 'error' });
       } else {
-        Swal.fire('Updated', 'Product updated successfully', 'success');
+        showSwal({ title: 'Updated', text: 'Product updated successfully', icon: 'success' });
         setShowModal(false);
         setEditProduct(null);
         resetForm();
         fetchProducts();
       }
     } else {
-      const { error } = await supabase
-        .from('inventory_parts')
-        .insert([payload]);
+      const { error } = await supabase.from('inventory_parts').insert([payload]);
       if (error) {
-        Swal.fire('Error', `Failed to add product: ${error.message}`, 'error');
+        showSwal({ title: 'Error', text: `Failed to add product: ${error.message}`, icon: 'error' });
       } else {
-        Swal.fire('Added', 'Product added successfully', 'success');
+        showSwal({ title: 'Added', text: 'Product added successfully', icon: 'success' });
         setShowModal(false);
         resetForm();
         fetchProducts();
@@ -239,11 +253,11 @@ export default function AdminManageParts() {
 
   const handleTopEdit = () => {
     if (selected.length !== 1) {
-      Swal.fire('Notice', 'Please select exactly one product to edit.', 'info');
+      showSwal({ title: 'Notice', text: 'Please select exactly one product to edit.', icon: 'info' });
       return;
     }
     const toEdit = products.find((p) => p.id === selected[0]);
-    if (!toEdit) return Swal.fire('Error', 'Selected product not found', 'error');
+    if (!toEdit) return showSwal({ title: 'Error', text: 'Selected product not found', icon: 'error' });
 
     setEditProduct(toEdit);
     setNewProduct({
@@ -296,8 +310,7 @@ export default function AdminManageParts() {
     });
 
   const allVisibleSelected =
-    filteredProducts.length > 0 &&
-    selected.length === filteredProducts.length;
+    filteredProducts.length > 0 && selected.length === filteredProducts.length;
 
   return (
     <div className="inventory-container">
@@ -416,7 +429,7 @@ export default function AdminManageParts() {
                 </button>
                 <button
                   className="delete-selected-btn"
-                  style={{ background: '#ff0000ff' }}
+                  style={{ background: '#ef4444' }}
                   onClick={() => handleMarkAsSold(product)}
                 >
                   - Sold

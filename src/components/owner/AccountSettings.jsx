@@ -121,15 +121,20 @@ export default function AccountSettings() {
     }
   };
 
+  // ✅ UPDATED: Dark mode support for Log Out SweetAlert
   const handleLogoutConfirm = () => {
+    const isDarkMode = document.body.classList.contains("dark");
+
     Swal.fire({
       title: "Are you sure?",
       text: "Do you really want to log out?",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#000",
-      cancelButtonColor: "#aaa",
+      confirmButtonColor: isDarkMode ? "#4CAF50" : "#000",
+      cancelButtonColor: isDarkMode ? "#888" : "#aaa",
       confirmButtonText: "Yes, log out",
+      background: isDarkMode ? "#1e1e1e" : "#fff",
+      color: isDarkMode ? "#f1f1f1" : "#111",
     }).then(async (result) => {
       if (result.isConfirmed) {
         await supabase.auth.signOut();

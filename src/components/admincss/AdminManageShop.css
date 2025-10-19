@@ -110,3 +110,31 @@
 .dark .logout-btn:hover {
   background: #dc3545;
 }
+/* 🌙 SweetAlert2 Dark Mode Fix */
+.dark .swal2-popup {
+  background: #1e1e1e !important;
+  color: #f1f1f1 !important;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.dark .swal2-title,
+.dark .swal2-html-container {
+  color: #f1f1f1 !important;
+}
+
+.dark .swal2-confirm {
+  background-color: #4caf50 !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+.dark .swal2-cancel {
+  background-color: #555 !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+.dark .swal2-icon.swal2-warning {
+  border-color: #fbc02d !important;
+  color: #fbc02d !important;
+}

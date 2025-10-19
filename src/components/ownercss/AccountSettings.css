@@ -71,21 +71,33 @@
   align-items: center;
   justify-content: center;
   z-index: 999;
-  overflow: hidden; /* ✅ Prevent left-right scroll */
+  overflow: hidden;
 }
 
+/* ✅ Widened modal box */
 .modal-box {
   background: #fff;
   padding: 35px;
   border-radius: 18px;
-  width: 420px;
+  width: 850px;
+  max-width: 90%;
   max-height: 85vh;
-  overflow-y: auto;
-  overflow-x: hidden; /* ✅ Disable horizontal scrolling */
+  display: flex;
+  flex-direction: column; /* ✅ keeps layout vertical */
+  overflow: hidden; /* prevent modal scroll */
   box-shadow: 0px 5px 25px rgba(0, 0, 0, 0.25);
   animation: fadeIn 0.25s ease-in-out;
   position: relative;
   text-align: left;
+  margin: 0 auto;
+}
+
+/* ✅ Only the list scrolls */
+.manage-user-access {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin-bottom: 15px;
 }
 
 @keyframes fadeIn {
@@ -110,11 +122,6 @@
 /* ===========================
    Manage User Access
    =========================== */
-.manage-user-access {
-  flex: 1;
-  overflow-y: auto;
-}
-
 .manage-user-access ul {
   list-style: none;
   padding: 0;
@@ -232,13 +239,13 @@
   flex-direction: column;
   align-items: center;
   width: 100%;
-  max-width: 380px; /* ✅ Keeps modal compact */
-  margin: 0 auto; /* Centered horizontally */
+  max-width: 380px;
+  margin: 0 auto;
 }
 
 .edit-modal input {
   width: 100%;
-  max-width: 340px; /* ✅ Prevents input from stretching too wide */
+  max-width: 340px;
   padding: 12px;
   margin: 10px 0;
   border-radius: 10px;
@@ -256,7 +263,7 @@
 
 .btn-update {
   width: 100%;
-  max-width: 340px; /* ✅ Same width as inputs */
+  max-width: 340px;
   padding: 12px;
   background-color: #000;
   color: white;
@@ -273,10 +280,10 @@
   background-color: #222;
 }
 
+/* ✅ Fixed Close Button */
 .close-button {
-  width: 100%;
-  max-width: 340px; /* ✅ Keeps consistent width */
-  margin-top: 15px;
+  position: sticky;
+  bottom: 0;
   background-color: #e5e7eb;
   color: #111;
   border: none;
@@ -286,6 +293,8 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  margin-top: 10px;
+  align-self: center;
 }
 
 .close-button:hover {
@@ -300,38 +309,7 @@
   transform: none;
   left: auto;
   top: auto;
-  overflow-x: hidden; /* ✅ Removes bottom scroll bar */
-}
-
-
-/* ===========================
-   Close Button
-   =========================== */
-.close-button {
-  margin-top: 15px;
-  background-color: #e5e7eb;
-  color: #111;
-  border: none;
-  padding: 10px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.close-button:hover {
-  background-color: #d1d5db;
-}
-
-/* ===========================
-   Fix Alignment for Edit Modal
-   =========================== */
-.modal-box.edit-modal {
-  margin: 0 auto;
-  transform: none;
-  left: auto;
-  top: auto;
+  overflow-x: hidden;
 }
 
 /* ===========================
