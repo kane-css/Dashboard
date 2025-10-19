@@ -9,7 +9,6 @@ export default function Inventory() {
   const [category, setCategory] = useState("All");
   const [unit, setUnit] = useState("All");
 
-  // ✅ Load products from localStorage first
   const [products, setProducts] = useState(() => {
     const saved = localStorage.getItem("inventoryProducts");
     return saved ? JSON.parse(saved) : [];
@@ -34,12 +33,10 @@ export default function Inventory() {
     fetchProducts();
   }, []);
 
-  // ✅ Save to localStorage whenever products change
   useEffect(() => {
     localStorage.setItem("inventoryProducts", JSON.stringify(products));
   }, [products]);
 
-  // ✅ Fetch products and preserve frontend-only "added_quantity"
   const fetchProducts = async () => {
     const { data, error } = await supabase.from("inventory_parts").select("*");
     if (error) {
@@ -56,7 +53,6 @@ export default function Inventory() {
     }
   };
 
-  // ✅ Custom SweetAlert with Dark Mode
   const customSwal = (title, text, icon) => {
     const isDarkMode = document.body.classList.contains("dark");
     Swal.fire({
@@ -81,9 +77,9 @@ export default function Inventory() {
   };
 
   const handleDelete = async () => {
-    if (selected.length === 0) {
+    if (selected.length === 0)
       return customSwal("No selection", "Please select products to delete", "warning");
-    }
+
     const isDarkMode = document.body.classList.contains("dark");
     const confirm = await Swal.fire({
       title: "Delete selected?",
@@ -99,6 +95,7 @@ export default function Inventory() {
       .from("inventory_parts")
       .delete()
       .in("id", selected);
+
     if (error) {
       customSwal("Error", "Failed to delete products", "error");
     } else {
@@ -108,7 +105,6 @@ export default function Inventory() {
     }
   };
 
-  // ✅ + Stock
   const handleAddStock = async (product, qtyOverride = null) => {
     const isDarkMode = document.body.classList.contains("dark");
     let qty = qtyOverride;
@@ -144,7 +140,6 @@ export default function Inventory() {
       .from("inventory_parts")
       .update({
         availability: String(newAvail),
-        modified: new Date().toISOString(),
       })
       .eq("id", product.id);
 
@@ -154,7 +149,6 @@ export default function Inventory() {
       customSwal("Success", `Added ${qty} to stock.`, "success");
   };
 
-  // ✅ - Sold
   const handleMarkAsSold = async (product) => {
     const isDarkMode = document.body.classList.contains("dark");
     const { value } = await Swal.fire({
@@ -192,7 +186,6 @@ export default function Inventory() {
       .update({
         sold_quantity: String(newSold),
         availability: String(newAvail),
-        modified: new Date().toISOString(),
       })
       .eq("id", product.id);
 
@@ -252,7 +245,6 @@ export default function Inventory() {
             price: priceValue,
             category: newProduct.category,
             unit: newProduct.unit,
-            modified: new Date().toISOString(),
           })
           .eq("id", editProduct.id);
 
@@ -272,8 +264,6 @@ export default function Inventory() {
           price: priceValue,
           category: newProduct.category,
           unit: newProduct.unit,
-          created: new Date().toISOString(),
-          modified: new Date().toISOString(),
         };
 
         const { error } = await supabase
@@ -412,7 +402,6 @@ export default function Inventory() {
           </button>
         </div>
 
-        {/* TABLE */}
         <div className="inventory-table">
           <div
             className="inventory-header"
@@ -488,7 +477,6 @@ export default function Inventory() {
         </div>
       </div>
 
-      {/* ADD/EDIT MODAL */}
       {showModal && (
         <div className="modal-overlay">
           <div
@@ -574,8 +562,8 @@ export default function Inventory() {
             </div>
 
             <div className="modal-footer">
-              <button className="add-btn" onClick={handleSaveProduct}>
-                {editProduct ? "Save Changes" : "Save Product"}
+              <button className="save-btn" onClick={handleSaveProduct}>
+                {editProduct ? "Update" : "Save"}
               </button>
             </div>
           </div>
