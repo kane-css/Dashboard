@@ -7,7 +7,9 @@ import { supabase } from "../../supabase";
 export default function AccountSettings() {
   const [showManageModal, setShowManageModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [users, setUsers] = useState([]);
+  const [archives, setArchives] = useState([]);
   const [formData, setFormData] = useState({
     shopName: "",
     ownerName: "",
@@ -16,6 +18,7 @@ export default function AccountSettings() {
   });
   const navigate = useNavigate();
 
+  // 🔹 Fetch users for "Manage User Access"
   useEffect(() => {
     const fetchUsers = async () => {
       const {
@@ -32,6 +35,21 @@ export default function AccountSettings() {
 
     if (showManageModal) fetchUsers();
   }, [showManageModal]);
+
+  // 🔹 Fetch archived products
+  useEffect(() => {
+    const fetchArchives = async () => {
+      const { data, error } = await supabase
+        .from("inventory_parts")
+        .select("*")
+        .eq("is_archived", true);
+
+      if (error) console.error("Error fetching archives:", error);
+      else setArchives(data);
+    };
+
+    if (showArchiveModal) fetchArchives();
+  }, [showArchiveModal]);
 
   const handleInputChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -121,7 +139,7 @@ export default function AccountSettings() {
     }
   };
 
-  // ✅ UPDATED: Dark mode support for Log Out SweetAlert
+  // ✅ Dark mode support for Log Out SweetAlert
   const handleLogoutConfirm = () => {
     const isDarkMode = document.body.classList.contains("dark");
 
@@ -143,9 +161,39 @@ export default function AccountSettings() {
     });
   };
 
+  // 🔹 Restore Archived Product
+  const handleRestore = async (id) => {
+    const isDarkMode = document.body.classList.contains("dark");
+
+    const confirm = await Swal.fire({
+      title: "Restore Product?",
+      text: "This will move the product back to active inventory.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Restore",
+      cancelButtonText: "Cancel",
+      background: isDarkMode ? "#1e1e1e" : "#ffffff",
+      color: isDarkMode ? "#f1f1f1" : "#111111",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    const { error } = await supabase
+      .from("inventory_parts")
+      .update({ is_archived: false })
+      .eq("id", id);
+
+    if (error) {
+      Swal.fire("Error", "Failed to restore product.", "error");
+    } else {
+      setArchives(archives.filter((a) => a.id !== id));
+      Swal.fire("Restored!", "Product has been restored successfully.", "success");
+    }
+  };
+
   return (
     <div className="account-settings">
-      <h1>Account Settings</h1>
+      <h1>Settings</h1>
 
       <div className="settings-buttons">
         <button
@@ -160,11 +208,18 @@ export default function AccountSettings() {
         >
           Edit Shop Profile
         </button>
+        <button
+          className="btn-archives"
+          onClick={() => setShowArchiveModal(true)}
+        >
+          View Archives
+        </button>
         <button className="btn-logout" onClick={handleLogoutConfirm}>
           Log Out
         </button>
       </div>
 
+      {/* 🔹 Manage Users Modal */}
       {showManageModal && (
         <div className="modal-overlay">
           <div className="modal-box">
@@ -226,6 +281,7 @@ export default function AccountSettings() {
         </div>
       )}
 
+      {/* 🔹 Edit Profile Modal */}
       {showEditModal && (
         <div className="modal-overlay">
           <div className="modal-box edit-modal">
@@ -264,6 +320,60 @@ export default function AccountSettings() {
             <button
               className="close-button"
               onClick={() => setShowEditModal(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 🔹 Archive Modal */}
+      {showArchiveModal && (
+        <div className="modal-overlay">
+          <div className="modal-box archive-modal">
+            <h2>Archived Products</h2>
+            {archives.length === 0 ? (
+              <p style={{ textAlign: "center" }}>No archived products found.</p>
+            ) : (
+              <table className="archive-table">
+                <thead>
+                  <tr>
+                    <th>Brand</th>
+                    <th>Model</th>
+                    <th>Price</th>
+                    <th>Unit</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {archives.map((a) => (
+                    <tr key={a.id}>
+                      <td>{a.brand}</td>
+                      <td>{a.model}</td>
+                      <td>₱{a.price}</td>
+                      <td>{a.unit}</td>
+                      <td>
+                        <button
+                          className="btn-restore"
+                          style={{
+                            backgroundColor: "#22c55e",
+                            color: "white",
+                            padding: "4px 8px",
+                            borderRadius: "6px",
+                          }}
+                          onClick={() => handleRestore(a.id)}
+                        >
+                          Restore
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            <button
+              className="close-button"
+              onClick={() => setShowArchiveModal(false)}
             >
               Close
             </button>

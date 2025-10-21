@@ -3,7 +3,6 @@ import {
   FaTachometerAlt,
   FaStore,
   FaCogs,
-  FaCrown,
   FaMoon,
   FaSun,
   FaUser,
@@ -39,10 +38,6 @@ export default function AdminSidebar({ isDark, toggleDarkMode }) {
 
         <button onClick={() => navigate("/admin/manage-parts")}>
           <FaCogs className="nav-icon" /> <span>Manage Parts</span>
-        </button>
-
-        <button onClick={() => navigate("/admin/top-customized")}>
-          <FaCrown className="nav-icon" /> <span>Top Customized</span>
         </button>
 
         <button onClick={() => navigate("/admin/manage-shop")}>

@@ -16,17 +16,15 @@ export default function CustomizedParts() {
   const [category, setCategory] = useState("All Categories");
   const [unit, setUnit] = useState("All Units");
   const [parts, setParts] = useState([]);
-  const [stats, setStats] = useState({ week: 0, month: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchMostViewedParts = async () => {
       setLoading(true);
-
       const { data, error } = await supabase
         .from("inventory_parts")
         .select("id, model, category, unit, part_views, brand")
-        .order("brand", { ascending: true }) // alphabetical by brand
+        .order("brand", { ascending: true })
         .limit(10);
 
       if (error) {
@@ -38,12 +36,15 @@ export default function CustomizedParts() {
 
       let filtered = data;
 
+      // ✅ Filter by category
       if (category !== "All Categories") {
         filtered = filtered.filter((item) => item.category === category);
       }
 
+      // ✅ Normalize unit values (e.g., "Aerox V2" → "Aerox")
       if (unit !== "All Units") {
-        filtered = filtered.filter((item) => item.unit === unit);
+        const normalizedUnit = unit.replace(" V2", "");
+        filtered = filtered.filter((item) => item.unit === normalizedUnit);
       }
 
       setParts(filtered);
@@ -77,9 +78,9 @@ export default function CustomizedParts() {
           >
             <option>All Categories</option>
             <option>Rear Shock</option>
-            <option>Exhaust</option>
+            <option>Swing Arm</option>
             <option>Disc Brake</option>
-            <option>Calipher</option>
+            <option>Caliper</option>
           </select>
         </div>
 
@@ -93,19 +94,7 @@ export default function CustomizedParts() {
         </div>
       </div>
 
-      {/* Summary Boxes */}
-      <div className="summary-box">
-        <div className="summary-item">
-          <h3>{stats.week}</h3>
-          <p>This Week</p>
-        </div>
-        <div className="summary-item">
-          <h3>{stats.month}</h3>
-          <p>This Month</p>
-        </div>
-      </div>
-
-      {/* Chart */}
+      {/* Chart Section */}
       <div className="chart-container">
         <h3>Top 9 Most Viewed Parts</h3>
 
@@ -127,9 +116,9 @@ export default function CustomizedParts() {
                 angle={-45}
                 textAnchor="end"
                 height={100}
-                tick={{ fontSize: 11, fill: "#555" }}
+                tick={{ fontSize: 11, fill: "#ccc" }}
               />
-              <YAxis tick={{ fill: "#555" }} />
+              <YAxis tick={{ fill: "#ccc" }} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "#1e1e1e",

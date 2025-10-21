@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import {
   FaTachometerAlt,
   FaBoxes,
-  FaCrown,
   FaUser,
   FaCog,
   FaMoon,
@@ -39,11 +38,8 @@ export default function OwnerSidebar({ isDark, toggleDarkMode }) {
         <button onClick={() => navigate("/inventory")}>
           <FaBoxes className="nav-icon" /> <span>View Inventory & Edit</span>
         </button>
-        <button onClick={() => navigate("/customized")}>
-          <FaCrown className="nav-icon" /> <span>Top Customized Parts</span>
-        </button>
         <button onClick={() => navigate("/settings")}>
-          <FaCog className="nav-icon" /> <span>Account Settings</span>
+          <FaCog className="nav-icon" /> <span>Settings</span>
         </button>
       </nav>
 

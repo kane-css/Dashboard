@@ -16,7 +16,6 @@ import Sidebar from "./components/owner/Sidebar";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import AdminManageShop from "./components/admin/AdminManageShop";
 import AdminManageParts from "./components/admin/AdminManageParts";
-import AdminTopCustomized from "./components/admin/AdminTopCustomized";
 import AdminSidebar from "./components/admin/AdminSidebar";
 
 export default function App() {
@@ -127,8 +126,7 @@ export default function App() {
       <Route path="/" element={<Navigate to="/signin" />} />
       <Route path="/signin" element={<SignIn onLogin={handleLogin} />} />
       <Route path="/signup" element={<SignUp />} />
-      <Route path="/reset-password" element={<ResetPassword />} /> {/* ✅ Add this line */}
-
+      <Route path="/reset-password" element={<ResetPassword />} />
 
       {/* Owner routes */}
       <Route
@@ -186,14 +184,6 @@ export default function App() {
         element={
           isLoggedIn && userRole === "admin"
             ? renderWithLayout(AdminManageParts, AdminSidebar)
-            : <Navigate to="/signin" />
-        }
-      />
-      <Route
-        path="/admin/top-customized"
-        element={
-          isLoggedIn && userRole === "admin"
-            ? renderWithLayout(AdminTopCustomized, AdminSidebar)
             : <Navigate to="/signin" />
         }
       />

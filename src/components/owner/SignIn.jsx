@@ -231,7 +231,7 @@ export default function SignIn({ onLogin }) {
                   onChange={(e) => setResetEmail(e.target.value)}
                 />
                 <button className="auth-button" onClick={handleSendResetCode}>
-                  Send Reset Code
+                  Send Reset Link
                 </button>
               </>
             )}

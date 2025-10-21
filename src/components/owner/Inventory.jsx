@@ -1,19 +1,13 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { supabase } from "../../supabase";
-import { X } from "lucide-react";
 import "../ownercss/Inventory.css";
 
 export default function Inventory() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [unit, setUnit] = useState("All");
-
-  const [products, setProducts] = useState(() => {
-    const saved = localStorage.getItem("inventoryProducts");
-    return saved ? JSON.parse(saved) : [];
-  });
-
+  const [products, setProducts] = useState([]);
   const [selected, setSelected] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editProduct, setEditProduct] = useState(null);
@@ -23,7 +17,6 @@ export default function Inventory() {
     model: "",
     added_quantity: "",
     sold_quantity: "",
-    availability: "",
     price: "",
     category: "",
     unit: "",
@@ -33,23 +26,17 @@ export default function Inventory() {
     fetchProducts();
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem("inventoryProducts", JSON.stringify(products));
-  }, [products]);
-
   const fetchProducts = async () => {
-    const { data, error } = await supabase.from("inventory_parts").select("*");
+    const { data, error } = await supabase
+      .from("inventory_parts")
+      .select("*")
+      .eq("is_archived", false);
+
     if (error) {
       console.error("Error fetching products:", error);
       customSwal("Error", "Failed to fetch products", "error");
     } else {
-      setProducts((prev) => {
-        const prevMap = new Map(prev.map((p) => [p.id, p.added_quantity || 0]));
-        return (data || []).map((item) => ({
-          ...item,
-          added_quantity: prevMap.get(item.id) || 0,
-        }));
-      });
+      setProducts(data || []);
     }
   };
 
@@ -76,110 +63,75 @@ export default function Inventory() {
     else setSelected([]);
   };
 
-  const handleDelete = async () => {
+  const handleArchiveSelected = async () => {
     if (selected.length === 0)
-      return customSwal("No selection", "Please select products to delete", "warning");
+      return customSwal("Notice", "Select at least one product to archive.", "info");
 
-    const isDarkMode = document.body.classList.contains("dark");
     const confirm = await Swal.fire({
-      title: "Delete selected?",
-      text: "This cannot be undone",
+      title: "Archive Selected Products?",
+      text: `You are about to archive ${selected.length} product(s).`,
       icon: "warning",
       showCancelButton: true,
-      background: isDarkMode ? "#1e1e1e" : "#ffffff",
-      color: isDarkMode ? "#f1f1f1" : "#111111",
+      confirmButtonText: "Yes, Archive",
+      cancelButtonText: "Cancel",
     });
+
     if (!confirm.isConfirmed) return;
 
     const { error } = await supabase
       .from("inventory_parts")
-      .delete()
+      .update({ is_archived: true })
       .in("id", selected);
 
     if (error) {
-      customSwal("Error", "Failed to delete products", "error");
+      console.error("Error archiving:", error);
+      customSwal("Error", "Failed to archive selected products.", "error");
     } else {
-      customSwal("Deleted!", "Selected products removed.", "success");
+      setProducts((prev) => prev.filter((p) => !selected.includes(p.id)));
       setSelected([]);
-      fetchProducts();
+      customSwal("Success", "Selected products have been archived.", "success");
     }
   };
 
-  const handleAddStock = async (product, qtyOverride = null) => {
-    const isDarkMode = document.body.classList.contains("dark");
-    let qty = qtyOverride;
-
-    if (qty === null) {
-      const { value } = await Swal.fire({
-        title: `Add stock to "${product.model || ""}"`,
-        input: "number",
-        inputLabel: "Enter quantity to add",
-        inputAttributes: { min: 1 },
-        showCancelButton: true,
-        background: isDarkMode ? "#1e1e1e" : "#ffffff",
-        color: isDarkMode ? "#f1f1f1" : "#111111",
-      });
-      qty = parseInt(value, 10);
-    }
-
-    if (!qty || qty <= 0) return;
-
-    const currentAvail = parseInt(product.availability || 0, 10);
-    const currentAdded = parseInt(product.added_quantity || 0, 10);
-    const newAvail = currentAvail + qty;
-    const newAdded = currentAdded + qty;
-
-    const updatedProducts = products.map((p) =>
-      p.id === product.id
-        ? { ...p, added_quantity: newAdded, availability: newAvail }
-        : p
-    );
-    setProducts(updatedProducts);
-
-    const { error } = await supabase
-      .from("inventory_parts")
-      .update({
-        availability: String(newAvail),
-      })
-      .eq("id", product.id);
-
-    if (error)
-      customSwal("Error", "Failed to update stock in database", "error");
-    else if (qtyOverride === null)
-      customSwal("Success", `Added ${qty} to stock.`, "success");
-  };
-
-  const handleMarkAsSold = async (product) => {
-    const isDarkMode = document.body.classList.contains("dark");
+  const handleAddStock = async (product) => {
     const { value } = await Swal.fire({
-      title: `Mark "${product.model || ""}" as sold`,
+      title: `Add stock to "${product.model}"`,
       input: "number",
-      inputLabel: "Enter quantity sold",
-      inputAttributes: { min: 1, max: product.availability || 0 },
+      inputLabel: "Enter quantity to add",
+      inputAttributes: { min: 1 },
       showCancelButton: true,
-      background: isDarkMode ? "#1e1e1e" : "#ffffff",
-      color: isDarkMode ? "#f1f1f1" : "#111111",
     });
 
     const qty = parseInt(value, 10);
     if (!qty || qty <= 0) return;
 
-    const currentAvail = parseInt(product.availability || 0, 10);
-    const currentSold = parseInt(product.sold_quantity || 0, 10);
+    const newAvail = parseInt(product.availability || 0, 10) + qty;
+    const { error } = await supabase
+      .from("inventory_parts")
+      .update({ availability: String(newAvail) })
+      .eq("id", product.id);
 
-    if (qty > currentAvail) {
-      return customSwal("Notice", `Only ${currentAvail} available.`, "info");
+    if (error) customSwal("Error", "Failed to update stock.", "error");
+    else {
+      fetchProducts();
+      customSwal("Success", `Added ${qty} to stock.`, "success");
     }
+  };
 
-    const newAvail = currentAvail - qty;
-    const newSold = currentSold + qty;
+  const handleMarkAsSold = async (product) => {
+    const { value } = await Swal.fire({
+      title: `Mark "${product.model}" as sold`,
+      input: "number",
+      inputLabel: "Enter quantity sold",
+      inputAttributes: { min: 1, max: product.availability || 0 },
+      showCancelButton: true,
+    });
 
-    const updatedProducts = products.map((p) =>
-      p.id === product.id
-        ? { ...p, sold_quantity: newSold, availability: newAvail }
-        : p
-    );
-    setProducts(updatedProducts);
+    const qty = parseInt(value, 10);
+    if (!qty || qty <= 0) return;
+
+    const newAvail = parseInt(product.availability || 0, 10) - qty;
+    const newSold = parseInt(product.sold_quantity || 0, 10) + qty;
 
     const { error } = await supabase
       .from("inventory_parts")
@@ -189,123 +141,24 @@ export default function Inventory() {
       })
       .eq("id", product.id);
 
-    if (error)
-      customSwal("Error", "Failed to update sold quantity", "error");
-    else customSwal("Success", `Marked ${qty} as sold.`, "success");
-  };
-
-  const handleSaveProduct = async () => {
-    const isDarkMode = document.body.classList.contains("dark");
-    if (
-      !newProduct.model ||
-      !newProduct.price ||
-      !newProduct.category ||
-      !newProduct.unit
-    ) {
-      return Swal.fire({
-        title: "Incomplete Fields",
-        text: "Please fill all required fields.",
-        icon: "warning",
-        background: isDarkMode ? "#1e1e1e" : "#ffffff",
-        color: isDarkMode ? "#f1f1f1" : "#111111",
-      });
-    }
-
-    const priceValue =
-      parseFloat(String(newProduct.price).replace(/[₱,]/g, "")) || 0;
-
-    try {
-      if (editProduct) {
-        const addedQty = parseInt(newProduct.added_quantity || 0, 10);
-        const currentAvail = parseInt(editProduct.availability || 0, 10);
-        const newAvail = currentAvail + addedQty;
-
-        const updatedProducts = products.map((p) =>
-          p.id === editProduct.id
-            ? {
-                ...p,
-                brand: newProduct.brand,
-                model: newProduct.model,
-                added_quantity: (p.added_quantity || 0) + addedQty,
-                availability: newAvail,
-                price: priceValue,
-                category: newProduct.category,
-                unit: newProduct.unit,
-              }
-            : p
-        );
-        setProducts(updatedProducts);
-
-        const { error } = await supabase
-          .from("inventory_parts")
-          .update({
-            availability: String(newAvail),
-            brand: newProduct.brand,
-            model: newProduct.model,
-            price: priceValue,
-            category: newProduct.category,
-            unit: newProduct.unit,
-          })
-          .eq("id", editProduct.id);
-
-        if (error) throw error;
-        customSwal("Updated", "Product updated successfully", "success");
-      } else {
-        const addedQty = parseInt(newProduct.added_quantity || 0);
-        const soldQty = parseInt(newProduct.sold_quantity || 0);
-
-        const insertData = {
-          brand: newProduct.brand,
-          model: newProduct.model,
-          sold_quantity: String(soldQty),
-          availability: String(
-            addedQty - soldQty >= 0 ? addedQty - soldQty : 0
-          ),
-          price: priceValue,
-          category: newProduct.category,
-          unit: newProduct.unit,
-        };
-
-        const { error } = await supabase
-          .from("inventory_parts")
-          .insert([insertData]);
-        if (error) throw error;
-
-        customSwal("Added", "Product added successfully", "success");
-      }
-
-      setShowModal(false);
-      setEditProduct(null);
-      setNewProduct({
-        brand: "",
-        model: "",
-        added_quantity: "",
-        sold_quantity: "",
-        availability: "",
-        price: "",
-        category: "",
-        unit: "",
-      });
+    if (error) customSwal("Error", "Failed to mark as sold.", "error");
+    else {
       fetchProducts();
-    } catch (error) {
-      console.error("Save product error:", error.message);
-      customSwal("Error", "Failed to save product", "error");
+      customSwal("Success", `Marked ${qty} as sold.`, "success");
     }
   };
 
   const handleTopEdit = () => {
-    if (selected.length !== 1) {
-      return customSwal("Notice", "Please select exactly one product to edit.", "info");
-    }
+    if (selected.length !== 1)
+      return customSwal("Notice", "Select one product to edit.", "info");
+
     const toEdit = products.find((p) => p.id === selected[0]);
-    if (!toEdit) return customSwal("Error", "Selected product not found", "error");
+    if (!toEdit) return customSwal("Error", "Product not found.", "error");
 
     setEditProduct(toEdit);
     setNewProduct({
       brand: toEdit.brand || "",
       model: toEdit.model || "",
-      added_quantity: "",
-      sold_quantity: toEdit.sold_quantity || "",
       price: toEdit.price || "",
       category: toEdit.category || "",
       unit: toEdit.unit || "",
@@ -313,29 +166,32 @@ export default function Inventory() {
     setShowModal(true);
   };
 
-  const normalize = (str) => (str || "").toString().trim();
+  const handleSaveEdit = async () => {
+    const { error } = await supabase
+      .from("inventory_parts")
+      .update(newProduct)
+      .eq("id", editProduct.id);
 
-  const filteredProducts = products
-    .filter((product) => {
-      const searchText = (search || "").toLowerCase();
-      const matchesSearch =
-        !searchText ||
-        product.model?.toLowerCase().includes(searchText) ||
-        product.brand?.toLowerCase().includes(searchText);
-      const matchesCategory =
-        category === "All" || product.category === category;
-      const matchesUnit = unit === "All" || product.unit === unit;
-      return matchesSearch && matchesCategory && matchesUnit;
-    })
-    .sort((a, b) => {
-      const brandCompare = normalize(a.brand).localeCompare(normalize(b.brand));
-      return brandCompare !== 0
-        ? brandCompare
-        : normalize(a.model).localeCompare(normalize(b.model));
-    });
+    if (error) customSwal("Error", "Failed to save changes.", "error");
+    else {
+      customSwal("Success", "Product updated successfully.", "success");
+      setShowModal(false);
+      fetchProducts();
+    }
+  };
+
+  const filteredProducts = products.filter((p) => {
+    const s = search.toLowerCase();
+    const matchSearch = !s || p.model?.toLowerCase().includes(s) || p.brand?.toLowerCase().includes(s);
+    const matchCategory = category === "All" || p.category === category;
+    const matchUnit = unit === "All" || p.unit === unit;
+    return matchSearch && matchCategory && matchUnit;
+  });
 
   const allVisibleSelected =
     filteredProducts.length > 0 && selected.length === filteredProducts.length;
+
+  const isDark = document.body.classList.contains("dark");
 
   return (
     <div className="inventory-container">
@@ -369,47 +225,16 @@ export default function Inventory() {
             <option>Nmax</option>
           </select>
 
-          <button className="add-btn" onClick={handleTopEdit}>
-            ✎ Edit Product
-          </button>
-
-          <button
-            className="add-btn"
-            onClick={() => {
-              setEditProduct(null);
-              setNewProduct({
-                brand: "",
-                model: "",
-                added_quantity: "",
-                sold_quantity: "",
-                availability: "",
-                price: "",
-                category: "",
-                unit: "",
-              });
-              setShowModal(true);
-            }}
-          >
-            + Add Products
-          </button>
-
-          <button
-            className="delete-selected-btn"
-            onClick={handleDelete}
-            disabled={selected.length === 0}
-          >
-            Delete Selected
+          <button className="add-btn" onClick={handleTopEdit}>✎ Edit Product</button>
+          <button className="archive-btn" onClick={handleArchiveSelected}>
+            Archive Selected
           </button>
         </div>
 
         <div className="inventory-table">
-          <div
-            className="inventory-header"
-            style={{
-              gridTemplateColumns:
-                "40px 1fr 1.5fr 0.8fr 0.8fr 0.8fr 1fr 1fr 1fr 1.2fr",
-            }}
-          >
+          <div className="inventory-header" style={{
+            gridTemplateColumns: "40px 1fr 1.5fr 0.8fr 0.8fr 0.8fr 1fr 1fr 1fr 1.2fr",
+          }}>
             <div>
               <input
                 type="checkbox"
@@ -446,16 +271,14 @@ export default function Inventory() {
                   onChange={() => handleCheckbox(product.id)}
                 />
               </div>
-
-              <div>{product.brand || ""}</div>
-              <div>{product.model || ""}</div>
+              <div>{product.brand}</div>
+              <div>{product.model}</div>
               <div>{product.added_quantity ?? 0}</div>
               <div>{product.sold_quantity ?? 0}</div>
               <div>{product.availability ?? 0}</div>
-              <div>₱{product.price?.toLocaleString?.() ?? product.price}</div>
-              <div>{product.category ?? ""}</div>
-              <div>{product.unit ?? ""}</div>
-
+              <div>₱{product.price}</div>
+              <div>{product.category}</div>
+              <div>{product.unit}</div>
               <div>
                 <button
                   className="add-btn"
@@ -477,93 +300,105 @@ export default function Inventory() {
         </div>
       </div>
 
+      {/* ✏️ MODAL FOR EDIT (Now Dark/Light Mode Compatible) */}
       {showModal && (
         <div className="modal-overlay">
           <div
-            className="modal-content"
-            style={{ width: 460, maxHeight: "80vh", overflowY: "auto" }}
+            className="modal"
+            style={{
+              backgroundColor: isDark ? "#1e1e1e" : "#ffffff",
+              color: isDark ? "#f1f1f1" : "#111111",
+              boxShadow: isDark
+                ? "0 0 10px rgba(255,255,255,0.1)"
+                : "0 0 10px rgba(0,0,0,0.2)",
+              border: isDark ? "1px solid #333" : "1px solid #ddd",
+            }}
           >
-            <div className="modal-header">
-              <h2>{editProduct ? "Edit Product" : "Add Product"}</h2>
-              <button className="close-btn" onClick={() => setShowModal(false)}>
-                <X size={20} />
+            <h2>Edit Product</h2>
+
+            <label>Brand:</label>
+            <input
+              value={newProduct.brand}
+              onChange={(e) => setNewProduct({ ...newProduct, brand: e.target.value })}
+              style={{
+                backgroundColor: isDark ? "#2a2a2a" : "#f9f9f9",
+                color: isDark ? "#f1f1f1" : "#111",
+              }}
+            />
+
+            <label>Model:</label>
+            <input
+              value={newProduct.model}
+              onChange={(e) => setNewProduct({ ...newProduct, model: e.target.value })}
+              style={{
+                backgroundColor: isDark ? "#2a2a2a" : "#f9f9f9",
+                color: isDark ? "#f1f1f1" : "#111",
+              }}
+            />
+
+            <label>Price:</label>
+            <input
+              type="number"
+              value={newProduct.price}
+              onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+              style={{
+                backgroundColor: isDark ? "#2a2a2a" : "#f9f9f9",
+                color: isDark ? "#f1f1f1" : "#111",
+              }}
+            />
+
+            <label>Category:</label>
+            <select
+              value={newProduct.category}
+              onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+              className="inventory-dropdown"
+              style={{
+                backgroundColor: isDark ? "#2a2a2a" : "#f9f9f9",
+                color: isDark ? "#f1f1f1" : "#111",
+              }}
+            >
+              <option value="">Select Category</option>
+              <option>Swing Arm</option>
+              <option>Rear Shock</option>
+              <option>Disc Brake</option>
+              <option>Calipher</option>
+            </select>
+
+            <label>Unit:</label>
+            <select
+              value={newProduct.unit}
+              onChange={(e) => setNewProduct({ ...newProduct, unit: e.target.value })}
+              className="inventory-dropdown"
+              style={{
+                backgroundColor: isDark ? "#2a2a2a" : "#f9f9f9",
+                color: isDark ? "#f1f1f1" : "#111",
+              }}
+            >
+              <option value="">Select Unit</option>
+              <option>Aerox</option>
+              <option>Nmax</option>
+            </select>
+
+            <div className="modal-buttons">
+              <button
+                className="add-btn"
+                style={{
+                  background: isDark ? "#3b82f6" : "#000",
+                  color: "#fff",
+                }}
+                onClick={handleSaveEdit}
+              >
+                Save
               </button>
-            </div>
-
-            <div className="modal-body">
-              <input
-                type="text"
-                placeholder="Brand"
-                value={newProduct.brand}
-                onChange={(e) =>
-                  setNewProduct({ ...newProduct, brand: e.target.value })
-                }
-              />
-              <input
-                type="text"
-                placeholder="Model Name"
-                value={newProduct.model}
-                onChange={(e) =>
-                  setNewProduct({ ...newProduct, model: e.target.value })
-                }
-              />
-              <input
-                type="number"
-                placeholder="Added Quantity"
-                value={newProduct.added_quantity}
-                onChange={(e) =>
-                  setNewProduct({
-                    ...newProduct,
-                    added_quantity: e.target.value,
-                  })
-                }
-              />
-              <input
-                type="number"
-                placeholder="Sold Quantity"
-                value={newProduct.sold_quantity}
-                onChange={(e) =>
-                  setNewProduct({
-                    ...newProduct,
-                    sold_quantity: e.target.value,
-                  })
-                }
-              />
-              <input
-                type="number"
-                placeholder="Price"
-                value={newProduct.price}
-                onChange={(e) =>
-                  setNewProduct({ ...newProduct, price: e.target.value })
-                }
-              />
-              <select
-                value={newProduct.category}
-                onChange={(e) =>
-                  setNewProduct({ ...newProduct, category: e.target.value })
-                }
+              <button
+                className="delete-selected-btn"
+                style={{
+                  background: isDark ? "#dc2626" : "#ff4d4d",
+                  color: "#fff",
+                }}
+                onClick={() => setShowModal(false)}
               >
-                <option value="">Select Category</option>
-                <option>Swing Arm</option>
-                <option>Rear Shock</option>
-                <option>Disc Brake</option>
-                <option>Calipher</option>
-              </select>
-              <select
-                value={newProduct.unit}
-                onChange={(e) =>
-                  setNewProduct({ ...newProduct, unit: e.target.value })
-                }
-              >
-                <option value="">Select Unit</option>
-                <option>Aerox</option>
-                <option>Nmax</option>
-              </select>
-            </div>
-
-            <div className="modal-footer">
-              <button className="save-btn" onClick={handleSaveProduct}>
-                {editProduct ? "Update" : "Save"}
+                Cancel
               </button>
             </div>
           </div>

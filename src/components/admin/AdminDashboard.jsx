@@ -9,110 +9,171 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from "recharts";
-import "../admincss/AdminDashboard.css";
+import "../admincss/AdminDashboard.css"; // ✅ External CSS file
 
 export default function AdminDashboard({ isDark }) {
   const [salesData, setSalesData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [viewData, setViewData] = useState([]);
+  const [loadingSales, setLoadingSales] = useState(true);
+  const [loadingViews, setLoadingViews] = useState(true);
 
-  // Fetch Total Quantity Sold per Part (Top Sold Parts)
+  // 🧾 Fetch Top Sold Parts
   useEffect(() => {
     const fetchSalesData = async () => {
       try {
-        // 1️⃣ Get all sales data
         const { data: sales, error: salesError } = await supabase
           .from("sales_history")
           .select("part_id, quantity_sold");
 
         if (salesError) throw salesError;
 
-        // 2️⃣ Aggregate quantities sold per part_id
         const quantityMap = {};
         (sales || []).forEach((sale) => {
           quantityMap[sale.part_id] =
             (quantityMap[sale.part_id] || 0) + (sale.quantity_sold || 0);
         });
 
-        // 3️⃣ Fetch all parts info
         const { data: parts, error: partsError } = await supabase
           .from("inventory_parts")
           .select("id, model");
 
         if (partsError) throw partsError;
 
-        // 4️⃣ Merge parts + total_sold data
         const merged = (parts || [])
           .map((p) => ({
             model: p.model,
             total_sold: quantityMap[p.id] || 0,
           }))
-          .sort((a, b) => b.total_sold - a.total_sold) // Sort descending
-          .slice(0, 10); // Limit to top 10
+          .sort((a, b) => b.total_sold - a.total_sold)
+          .slice(0, 10);
 
         setSalesData(merged);
       } catch (error) {
         console.error("Error fetching top sold parts:", error);
       } finally {
-        setLoading(false);
+        setLoadingSales(false);
       }
     };
 
     fetchSalesData();
   }, []);
 
-  // Toggle Dark Mode
+  // 👀 Fetch Top Viewed Parts
+  useEffect(() => {
+    const fetchViewedParts = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("inventory_parts")
+          .select("id, model, part_views")
+          .order("part_views", { ascending: false })
+          .limit(10);
+
+        if (error) throw error;
+
+        setViewData(data || []);
+      } catch (err) {
+        console.error("Error fetching viewed parts:", err);
+      } finally {
+        setLoadingViews(false);
+      }
+    };
+
+    fetchViewedParts();
+  }, []);
+
+  // 🌓 Sync dark mode
   useEffect(() => {
     document.body.classList.toggle("dark", isDark);
   }, [isDark]);
 
   return (
     <main className={`admin-dashboard-main ${isDark ? "dark" : ""}`}>
-      <h1>Admin Dashboard</h1>
+      <h1>Overview</h1>
 
-      {loading ? (
-        <p>Loading Top Sold Parts...</p>
-      ) : (
-        <div className={`chart-container ${isDark ? "dark" : ""}`}>
-          <h2>Top Sold Parts (by Quantity)</h2>
-          {salesData && salesData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={450}>
-              <BarChart
-                data={salesData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
-                barCategoryGap="20%"
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke={isDark ? "#444" : "#ccc"}
-                />
-                <XAxis
-                  dataKey="model"
-                  interval={0}
-                  angle={-25}
-                  textAnchor="end"
-                  tick={{ fontSize: 12, fill: isDark ? "#ddd" : "#333" }}
-                />
-                <YAxis tick={{ fill: isDark ? "#ddd" : "#333" }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: isDark ? "#333" : "#fff",
-                    color: isDark ? "#fff" : "#000",
-                    border: "none",
-                    borderRadius: "6px",
-                  }}
-                />
-                <Bar
-                  dataKey="total_sold"
-                  fill={isDark ? "#60a5fa" : "#3b82f6"}
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <p>No sales data available.</p>
-          )}
-        </div>
-      )}
+      {/* === TOP SOLD PARTS === */}
+      <section className={`chart-section ${isDark ? "dark" : ""}`}>
+        <h2>Top Sold Parts (by Quantity)</h2>
+        {loadingSales ? (
+          <p>Loading Top Sold Parts...</p>
+        ) : salesData.length === 0 ? (
+          <p>No sales data available.</p>
+        ) : (
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart
+              data={salesData}
+              margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
+            >
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={isDark ? "#444" : "#ccc"}
+              />
+              <XAxis
+                dataKey="model"
+                interval={0}
+                angle={-25}
+                textAnchor="end"
+                tick={{ fontSize: 12, fill: isDark ? "#ddd" : "#333" }}
+              />
+              <YAxis tick={{ fill: isDark ? "#ddd" : "#333" }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: isDark ? "#333" : "#fff",
+                  color: isDark ? "#fff" : "#000",
+                  borderRadius: "6px",
+                }}
+              />
+              <Bar
+                dataKey="total_sold"
+                fill={isDark ? "#60a5fa" : "#3b82f6"}
+                radius={[4, 4, 0, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        )}
+      </section>
+
+      {/* === TOP VIEWED PARTS === */}
+      <section className={`chart-section ${isDark ? "dark" : ""}`}>
+        <h2>Top Viewed Parts</h2>
+        {loadingViews ? (
+          <p>Loading Top Viewed Parts...</p>
+        ) : viewData.length === 0 ? (
+          <p>No viewed parts data available.</p>
+        ) : (
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart
+              data={viewData}
+              margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
+            >
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={isDark ? "#333" : "#ccc"}
+              />
+              <XAxis
+                dataKey="model"
+                interval={0}
+                angle={-25}
+                textAnchor="end"
+                tick={{ fontSize: 12, fill: isDark ? "#eee" : "#333" }}
+              />
+              <YAxis tick={{ fill: isDark ? "#eee" : "#333" }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: isDark ? "#2a2a2a" : "#fff",
+                  color: isDark ? "#fff" : "#111",
+                  borderRadius: "8px",
+                  border: isDark ? "1px solid #444" : "1px solid #ccc",
+                }}
+              />
+              <Bar
+                dataKey="part_views"
+                fill={isDark ? "#00e0c6" : "#007bff"}
+                radius={[6, 6, 0, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        )}
+      </section>
     </main>
   );
 }
