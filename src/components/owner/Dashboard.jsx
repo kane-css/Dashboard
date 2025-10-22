@@ -3,6 +3,8 @@ import { supabase } from "../../supabase";
 import {
   BarChart,
   Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   Tooltip,
@@ -141,36 +143,39 @@ export default function OwnerDashboard({ isDark }) {
           <p>No viewed parts data available.</p>
         ) : (
           <ResponsiveContainer width="100%" height={400}>
-            <BarChart
+            <LineChart
               data={viewData}
               margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
             >
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke={isDark ? "#333" : "#ccc"}
+                stroke={isDark ? "#444" : "#ccc"}
               />
               <XAxis
                 dataKey="model"
                 interval={0}
                 angle={-25}
                 textAnchor="end"
-                tick={{ fontSize: 12, fill: isDark ? "#eee" : "#333" }}
+                tick={{ fontSize: 12, fill: isDark ? "#ddd" : "#333" }}
               />
-              <YAxis tick={{ fill: isDark ? "#eee" : "#333" }} />
+              <YAxis tick={{ fill: isDark ? "#ddd" : "#333" }} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: isDark ? "#2a2a2a" : "#fff",
-                  color: isDark ? "#fff" : "#111",
+                  backgroundColor: isDark ? "#333" : "#fff",
+                  color: isDark ? "#fff" : "#000",
                   borderRadius: "8px",
                   border: isDark ? "1px solid #444" : "1px solid #ccc",
                 }}
               />
-              <Bar
+              <Line
+                type="monotone"
                 dataKey="part_views"
-                fill={isDark ? "#00e0c6" : "#007bff"}
-                radius={[6, 6, 0, 0]}
+                stroke={isDark ? "#00e0c6" : "#007bff"}
+                strokeWidth={3}
+                dot={{ fill: isDark ? "#00e0c6" : "#007bff", r: 5 }}
+                activeDot={{ r: 8 }}
               />
-            </BarChart>
+            </LineChart>
           </ResponsiveContainer>
         )}
       </section>

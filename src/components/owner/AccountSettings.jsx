@@ -6,16 +6,9 @@ import { supabase } from "../../supabase";
 
 export default function AccountSettings() {
   const [showManageModal, setShowManageModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [users, setUsers] = useState([]);
   const [archives, setArchives] = useState([]);
-  const [formData, setFormData] = useState({
-    shopName: "",
-    ownerName: "",
-    contact: "",
-    location: "",
-  });
   const navigate = useNavigate();
 
   // 🔹 Fetch users for "Manage User Access"
@@ -50,20 +43,6 @@ export default function AccountSettings() {
 
     if (showArchiveModal) fetchArchives();
   }, [showArchiveModal]);
-
-  const handleInputChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const handleProfileUpdate = () => {
-    Swal.fire({
-      icon: "success",
-      title: "Profile Updated!",
-      text: "Shop profile information has been updated successfully.",
-      confirmButtonColor: "#000",
-    });
-    setShowEditModal(false);
-  };
 
   const toggleStatus = async (userId, currentStatus) => {
     const newStatus = currentStatus === "active" ? "suspended" : "active";
@@ -202,18 +181,14 @@ export default function AccountSettings() {
         >
           Manage User Access
         </button>
-        <button
-          className="btn-edit-profile"
-          onClick={() => setShowEditModal(true)}
-        >
-          Edit Shop Profile
-        </button>
+
         <button
           className="btn-archives"
           onClick={() => setShowArchiveModal(true)}
         >
           View Archives
         </button>
+
         <button className="btn-logout" onClick={handleLogoutConfirm}>
           Log Out
         </button>
@@ -274,52 +249,6 @@ export default function AccountSettings() {
             <button
               className="close-button"
               onClick={() => setShowManageModal(false)}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* 🔹 Edit Profile Modal */}
-      {showEditModal && (
-        <div className="modal-overlay">
-          <div className="modal-box edit-modal">
-            <h2>Edit Shop Profile</h2>
-            <input
-              type="text"
-              name="shopName"
-              placeholder="Shop Name"
-              value={formData.shopName}
-              onChange={handleInputChange}
-            />
-            <input
-              type="text"
-              name="ownerName"
-              placeholder="Owner Name"
-              value={formData.ownerName}
-              onChange={handleInputChange}
-            />
-            <input
-              type="text"
-              name="contact"
-              placeholder="Contact"
-              value={formData.contact}
-              onChange={handleInputChange}
-            />
-            <input
-              type="text"
-              name="location"
-              placeholder="Location"
-              value={formData.location}
-              onChange={handleInputChange}
-            />
-            <button className="btn-update" onClick={handleProfileUpdate}>
-              Update Profile
-            </button>
-            <button
-              className="close-button"
-              onClick={() => setShowEditModal(false)}
             >
               Close
             </button>
