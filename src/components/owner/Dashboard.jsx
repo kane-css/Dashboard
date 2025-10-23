@@ -119,20 +119,7 @@ export default function OwnerDashboard({ isDark }) {
       <section className={`chart-section ${isDark ? "dark" : ""}`}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h2>Top Sold Parts (by Quantity)</h2>
-          <button
-            onClick={fetchSalesData}
-            style={{
-              padding: "0.4rem 0.8rem",
-              borderRadius: "6px",
-              border: "none",
-              background: isDark ? "#3b82f6" : "#2563eb",
-              color: "#fff",
-              cursor: "pointer",
-              fontSize: "0.9rem",
-            }}
-          >
-            Refresh
-          </button>
+          
         </div>
 
         {loadingSales ? (
