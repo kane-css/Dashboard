@@ -1,154 +1,80 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../../supabase";
 import Swal from "sweetalert2";
-import "../auth/ResetPassword.css";
- 
-export default function ForgotPassword() {
-  const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
-  const [enteredCode, setEnteredCode] = useState("");
-  const [newPassword, setNewPassword] = useState("");
+
+export default function ResetPassword() {
+  const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [stage, setStage] = useState("email"); // "email" -> "code" -> "reset"
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  // ✅ Step 1: Send reset code
-  const handleSendResetCode = async () => {
-    if (!email.trim()) {
-      Swal.fire("Error", "Please enter your email.", "warning");
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+
+    if (password !== confirmPassword) {
+      Swal.fire("Error", "Passwords do not match!", "error");
       return;
     }
 
-    setLoading(true);
-    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.auth.updateUser({ password });
 
-    const { error } = await supabase.from("password_reset_codes").insert([
-      {
-        email,
-        code: resetCode,
-        expires_at: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes expiry
-      },
-    ]);
+      if (error) throw error;
 
-    setLoading(false);
-
-    if (error) {
-      Swal.fire("Error", "Failed to send reset code.", "error");
-      console.error(error);
-      return;
+      Swal.fire("Success", "Password has been successfully reset!", "success");
+      navigate("/signin");
+    } catch (err) {
+      Swal.fire("Error", err.message, "error");
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
-
-    Swal.fire(
-      "Reset Code Sent",
-      `A 6-digit reset code was sent to ${email}. (For testing: ${resetCode})`,
-      "info"
-    );
-    setCode(resetCode);
-    setStage("code");
-  };
-
-  // ✅ Step 2: Verify reset code
-  const handleVerifyCode = () => {
-    if (enteredCode.trim() !== code) {
-      Swal.fire("Error", "The code you entered is incorrect.", "error");
-      return;
-    }
-
-    Swal.fire("Success", "Code verified. You can now set a new password.", "success");
-    setStage("reset");
-  };
-
-  // ✅ Step 3: Reset password
-  const handleResetPassword = async () => {
-    if (newPassword.length < 6) {
-      Swal.fire("Error", "Password must be at least 6 characters.", "warning");
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      Swal.fire("Error", "Passwords do not match.", "warning");
-      return;
-    }
-
-    const { error } = await supabase.auth.updateUser({
-      password: newPassword,
-    });
-
-    if (error) {
-      Swal.fire("Error", error.message, "error");
-      return;
-    }
-
-    Swal.fire("Success", "Password has been reset successfully!", "success");
-    setStage("email");
-    setEmail("");
-    setCode("");
-    setEnteredCode("");
-    setNewPassword("");
-    setConfirmPassword("");
   };
 
   return (
-    <div className="forgot-container">
-      <h2 className="forgot-title">Forgot Password</h2>
-
-      {/* Step 1: Enter Email */}
-      {stage === "email" && (
-        <>
-          <input
-            type="email"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="forgot-input"
-          />
-          <button
-            onClick={handleSendResetCode}
-            disabled={loading}
-            className="forgot-button primary"
-          >
-            {loading ? "Sending..." : "Send Code"}
-          </button>
-        </>
-      )}
-
-      {/* Step 2: Enter Code */}
-      {stage === "code" && (
-        <>
-          <input
-            type="text"
-            placeholder="Enter the 6-digit code"
-            value={enteredCode}
-            onChange={(e) => setEnteredCode(e.target.value)}
-            className="forgot-input"
-          />
-          <button onClick={handleVerifyCode} className="forgot-button success">
-            Verify Code
-          </button>
-        </>
-      )}
-
-      {/* Step 3: Reset Password */}
-      {stage === "reset" && (
-        <>
-          <input
-            type="password"
-            placeholder="New Password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            className="forgot-input"
-          />
-          <input
-            type="password"
-            placeholder="Confirm Password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            className="forgot-input"
-          />
-          <button onClick={handleResetPassword} className="forgot-button primary">
-            Reset Password
-          </button>
-        </>
-      )}
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+      <form
+        onSubmit={handleResetPassword}
+        style={{
+          background: "#fff",
+          padding: "30px",
+          borderRadius: "10px",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+          width: "300px",
+          textAlign: "center",
+        }}
+      >
+        <h2>Reset Password</h2>
+        <input
+          type="password"
+          placeholder="New password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          style={{ width: "100%", padding: "10px", margin: "10px 0" }}
+        />
+        <input
+          type="password"
+          placeholder="Confirm new password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+          style={{ width: "100%", padding: "10px", margin: "10px 0" }}
+        />
+        <button type="submit" disabled={loading} style={{ width: "100%", padding: "10px" }}>
+          {loading ? "Updating..." : "Confirm"}
+        </button>
+        <br />
+        <button
+          type="button"
+          onClick={() => navigate("/signin")}
+          style={{ marginTop: "10px", width: "100%", padding: "10px" }}
+        >
+          Back to Sign In
+        </button>
+      </form>
     </div>
   );
 }

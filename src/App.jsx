@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { supabase } from "./supabase";
+import { useLocation } from "react-router-dom";
 
 // Owner Components
 import ResetPassword from "./components/auth/ResetPassword";
@@ -34,6 +35,39 @@ export default function App() {
     document.body.classList.toggle("dark", darkMode);
     localStorage.setItem("darkMode", darkMode);
   }, [darkMode]);
+
+    const navigates = useNavigate();
+    const location = useLocation();
+
+    useEffect(() => {
+  const handleRecoverySession = async () => {
+    if (location.hash.includes("access_token") && location.hash.includes("type=recovery")) {
+      const hashParams = new URLSearchParams(location.hash.replace("#", ""));
+      const access_token = hashParams.get("access_token");
+      const refresh_token = hashParams.get("refresh_token");
+
+      if (access_token && refresh_token) {
+        // Set Supabase session manually using the tokens in the URL
+        const { data, error } = await supabase.auth.setSession({
+          access_token,
+          refresh_token,
+        });
+
+        if (error) {
+          console.error("❌ Failed to set recovery session:", error.message);
+        } else {
+          console.log("✅ Recovery session restored successfully!");
+          navigates("/resetpassword");
+        }
+      }
+    }
+  };
+
+  handleRecoverySession();
+}, [location, navigate]);
+
+
+
 
   // ✅ Check Supabase session
   useEffect(() => {
@@ -189,4 +223,5 @@ export default function App() {
       />
     </Routes>
   );
+  
 }

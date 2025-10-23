@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { Sun, Moon } from "lucide-react";
@@ -10,18 +10,10 @@ export default function SignIn({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showForgotModal, setShowForgotModal] = useState(false);
-  const [resetEmail, setResetEmail] = useState("");
-  const [resetCode, setResetCode] = useState("");
-  const [enteredCode, setEnteredCode] = useState("");
-  const [stage, setStage] = useState("email"); // email → code → reset
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [isDark, setIsDark] = useState(() => {
-    const savedTheme = localStorage.getItem("theme");
-    return savedTheme === "dark";
-  });
+  const [isDark, setIsDark] = useState(() => localStorage.getItem("theme") === "dark");
 
   const navigate = useNavigate();
+  const hasRedirected = useRef(false); // 🧩 prevent multiple navigations
 
   // ---- Theme handling ----
   useEffect(() => {
@@ -29,11 +21,12 @@ export default function SignIn({ onLogin }) {
     localStorage.setItem("theme", isDark ? "dark" : "light");
   }, [isDark]);
 
-  // ---- Check for active session ----
+  // ---- Check for active session (run once) ----
   useEffect(() => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
-      if (data.session) {
+      if (data.session && !hasRedirected.current) {
+        hasRedirected.current = true; // 🧩 prevent loop
         const { data: profile } = await supabase
           .from("profiles")
           .select("role")
@@ -44,11 +37,6 @@ export default function SignIn({ onLogin }) {
           const redirectPath =
             profile.role === "owner" ? "/dashboard" : "/admin-dashboard";
           navigate(redirectPath, { replace: true });
-
-          window.history.pushState(null, "", window.location.href);
-          window.addEventListener("popstate", () => {
-            window.history.pushState(null, "", window.location.href);
-          });
         }
       }
     };
@@ -68,8 +56,6 @@ export default function SignIn({ onLogin }) {
       return Swal.fire("Validation Error", "Please enter a valid email.", "warning");
     if (!password)
       return Swal.fire("Validation Error", "Password is required.", "warning");
-    if (password.length < 6)
-      return Swal.fire("Validation Error", "Password must be at least 6 characters.", "warning");
 
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
@@ -88,7 +74,7 @@ export default function SignIn({ onLogin }) {
       return Swal.fire("Profile Not Found", "Your user profile doesn't exist.", "error");
     if (profile.status === "pending") {
       await supabase.auth.signOut();
-      return Swal.fire("Account Pending", "Your account is still awaiting approval.", "info");
+      return Swal.fire("Account Pending", "Your account is awaiting approval.", "info");
     }
     if (profile.status === "suspended") {
       await supabase.auth.signOut();
@@ -98,74 +84,6 @@ export default function SignIn({ onLogin }) {
     onLogin(profile.role);
     const redirectPath = profile.role === "owner" ? "/dashboard" : "/admin-dashboard";
     navigate(redirectPath, { replace: true });
-
-    window.history.pushState(null, "", window.location.href);
-    window.addEventListener("popstate", () => {
-      window.history.pushState(null, "", window.location.href);
-    });
-  };
-
-  // ---- Forgot Password Flow (using reset code) ----
-  const handleSendResetCode = async () => {
-    if (!validateEmail(resetEmail))
-      return Swal.fire("Invalid Email", "Please enter a valid email address.", "warning");
-
-    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
-
-    const { error } = await supabase.from("password_reset_codes").insert([
-      {
-        email: resetEmail,
-        code: resetCode,
-        expires_at: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes expiry
-      },
-    ]);
-
-    if (error) {
-      console.error(error);
-      Swal.fire("Error", "Failed to send reset code.", "error");
-      return;
-    }
-
-    Swal.fire(
-      "Reset Code Sent",
-      `A 6-digit reset code was sent to ${resetEmail}. (For testing: ${resetCode})`,
-      "info"
-    );
-    setResetCode(resetCode);
-    setStage("code");
-  };
-
-  const handleVerifyCode = () => {
-    if (enteredCode.trim() !== resetCode)
-      return Swal.fire("Error", "Incorrect code. Please try again.", "error");
-
-    Swal.fire("Verified", "Code verified. You can now reset your password.", "success");
-    setStage("reset");
-  };
-
-  const handleResetPassword = async () => {
-    if (newPassword.length < 6)
-      return Swal.fire("Error", "Password must be at least 6 characters.", "warning");
-    if (newPassword !== confirmPassword)
-      return Swal.fire("Error", "Passwords do not match.", "warning");
-
-    const { error } = await supabase.auth.updateUser({
-      password: newPassword,
-    });
-
-    if (error) {
-      Swal.fire("Error", error.message, "error");
-      return;
-    }
-
-    Swal.fire("Success", "Password has been reset successfully!", "success");
-    setShowForgotModal(false);
-    setStage("email");
-    setResetEmail("");
-    setResetCode("");
-    setEnteredCode("");
-    setNewPassword("");
-    setConfirmPassword("");
   };
 
   return (
@@ -180,7 +98,6 @@ export default function SignIn({ onLogin }) {
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          required
         />
         <input
           type="password"
@@ -188,14 +105,17 @@ export default function SignIn({ onLogin }) {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          required
         />
 
         <button type="submit" className="auth-button">
           Login
         </button>
 
-        <p className="forgot-pass" onClick={() => setShowForgotModal(true)}>
+        <p
+          className="forgot-pass"
+          onClick={() => setShowForgotModal(true)}
+          style={{ cursor: "pointer", color: "#007bff", textDecoration: "underline" }}
+        >
           Forgot Password?
         </p>
 
@@ -210,7 +130,6 @@ export default function SignIn({ onLogin }) {
       <button
         className={`toggle-btn ${isDark ? "dark-mode" : "light-mode"}`}
         onClick={() => setIsDark(!isDark)}
-        title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
       >
         {isDark ? <Sun size={20} /> : <Moon size={20} />}
       </button>
@@ -220,60 +139,42 @@ export default function SignIn({ onLogin }) {
         <div className="modal-overlay">
           <div className="modal-box">
             <h3>Forgot Password</h3>
+            <p style={{ fontSize: "0.9rem", color: "#777" }}>
+              You’ll receive a password reset link to your email.
+            </p>
 
-            {stage === "email" && (
-              <>
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="auth-input"
-                  value={resetEmail}
-                  onChange={(e) => setResetEmail(e.target.value)}
-                />
-                <button className="auth-button" onClick={handleSendResetCode}>
-                  Send Reset Link
-                </button>
-              </>
-            )}
+            <input
+              type="email"
+              placeholder="Enter your email"
+              className="auth-input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
 
-            {stage === "code" && (
-              <>
-                <input
-                  type="text"
-                  placeholder="Enter 6-digit code"
-                  className="auth-input"
-                  value={enteredCode}
-                  onChange={(e) => setEnteredCode(e.target.value)}
-                />
-                <button className="auth-button" onClick={handleVerifyCode}>
-                  Verify Code
-                </button>
-              </>
-            )}
+            <button
+              className="auth-button"
+              onClick={async () => {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                  redirectTo: "http://localhost:5173/resetpassword",
+                });
+                if (error)
+                  Swal.fire("Error", error.message, "error");
+                else
+                  Swal.fire(
+                    "Email Sent",
+                    "A reset link has been sent to your email.",
+                    "success"
+                  );
+              }}
+            >
+              Send Reset Link
+            </button>
 
-            {stage === "reset" && (
-              <>
-                <input
-                  type="password"
-                  placeholder="New Password"
-                  className="auth-input"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                />
-                <input
-                  type="password"
-                  placeholder="Confirm Password"
-                  className="auth-input"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-                <button className="auth-button" onClick={handleResetPassword}>
-                  Reset Password
-                </button>
-              </>
-            )}
-
-            <p className="modal-close" onClick={() => setShowForgotModal(false)}>
+            <p
+              className="modal-close"
+              onClick={() => setShowForgotModal(false)}
+              style={{ marginTop: "10px", cursor: "pointer", color: "red" }}
+            >
               Cancel
             </p>
           </div>
