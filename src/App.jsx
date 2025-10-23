@@ -24,7 +24,7 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem("darkMode") === "true");
 
-  // ✅ Persist dark mode
+  // ✅ Persist dark mode state
   useEffect(() => {
     document.body.classList.toggle("dark", darkMode);
     localStorage.setItem("darkMode", darkMode);
@@ -58,33 +58,33 @@ export default function App() {
   useEffect(() => {
     if (!sessionChecked) return;
 
-    const currentPath = window.location.hash.replace("#", "");
+    const currentPath = window.location.hash.replace("#", ""); // Important for HashRouter
     const isAuthPage = ["/", "/signin", "/signup", "/resetpassword"].includes(currentPath);
 
     if (session) {
       const role = session.user.user_metadata.role || "owner";
       const target = role === "admin" ? "/admin-dashboard" : "/dashboard";
 
-      // Redirect only if on signin/signup/resetpassword pages
+      // Redirect only if currently on signin/signup/reset pages
       if (isAuthPage && currentPath !== target) {
         navigate(target, { replace: true });
       }
     } else {
-      // Redirect to signin if user is logged out and not on signup/reset
+      // Redirect to signin if logged out and not on signup/reset
       if (!["/signup", "/resetpassword", "/signin", "/"].includes(currentPath)) {
         navigate("/signin", { replace: true });
       }
     }
   }, [session, sessionChecked, navigate]);
 
-  // ✅ Logout handler
+  // ✅ Logout function
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setSession(null);
     navigate("/signin", { replace: true });
   };
 
-  // ✅ Loading screen
+  // ✅ Loading screen while checking session
   if (!sessionChecked) {
     return (
       <div
@@ -102,7 +102,7 @@ export default function App() {
     );
   }
 
-  // ✅ Layout wrapper
+  // ✅ Layout wrapper for Sidebar + Page
   const renderWithLayout = (Page, SidebarComponent) => (
     <div
       style={{
@@ -125,7 +125,7 @@ export default function App() {
 
   const role = session?.user?.user_metadata?.role || "owner";
 
-  // ✅ App routes
+  // ✅ Define all routes
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/signin" replace />} />
