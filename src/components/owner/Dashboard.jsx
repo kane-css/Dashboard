@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { supabase } from "../../supabase";
 import {
   BarChart,
@@ -20,68 +20,91 @@ export default function OwnerDashboard({ isDark }) {
   const [loadingViews, setLoadingViews] = useState(true);
 
   // 🧾 Fetch Top Sold Parts
-  useEffect(() => {
-    const fetchSalesData = async () => {
-      try {
-        const { data: sales, error: salesError } = await supabase
-          .from("sales_history")
-          .select("part_id, quantity_sold");
+  const fetchSalesData = useCallback(async () => {
+    setLoadingSales(true);
+    try {
+      // Fetch sales history
+      const { data: sales, error: salesError } = await supabase
+        .from("sales_history")
+        .select("part_id, quantity_sold");
 
-        if (salesError) throw salesError;
+      if (salesError) throw salesError;
 
-        const quantityMap = {};
-        (sales || []).forEach((sale) => {
-          quantityMap[sale.part_id] =
-            (quantityMap[sale.part_id] || 0) + (sale.quantity_sold || 0);
-        });
+      // Count total sold per part
+      const quantityMap = {};
+      (sales || []).forEach((sale) => {
+        quantityMap[sale.part_id] =
+          (quantityMap[sale.part_id] || 0) + (sale.quantity_sold || 0);
+      });
 
-        const { data: parts, error: partsError } = await supabase
-          .from("inventory_parts")
-          .select("id, model");
+      // Fetch part info
+      const { data: parts, error: partsError } = await supabase
+        .from("inventory_parts")
+        .select("id, model");
 
-        if (partsError) throw partsError;
+      if (partsError) throw partsError;
 
-        const merged = (parts || [])
-          .map((p) => ({
-            model: p.model,
-            total_sold: quantityMap[p.id] || 0,
-          }))
-          .sort((a, b) => b.total_sold - a.total_sold)
-          .slice(0, 10);
+      // Merge
+      const merged = (parts || [])
+        .map((p) => ({
+          model: p.model,
+          total_sold: quantityMap[p.id] || 0,
+        }))
+        .sort((a, b) => b.total_sold - a.total_sold)
+        .slice(0, 10);
 
-        setSalesData(merged);
-      } catch (error) {
-        console.error("Error fetching top sold parts:", error);
-      } finally {
-        setLoadingSales(false);
-      }
-    };
-
-    fetchSalesData();
+      setSalesData(merged);
+    } catch (error) {
+      console.error("Error fetching top sold parts:", error);
+    } finally {
+      setLoadingSales(false);
+    }
   }, []);
 
   // 👀 Fetch Top Viewed Parts
-  useEffect(() => {
-    const fetchViewedParts = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("inventory_parts")
-          .select("id, model, part_views")
-          .order("part_views", { ascending: false })
-          .limit(10);
+  const fetchViewedParts = useCallback(async () => {
+    setLoadingViews(true);
+    try {
+      const { data, error } = await supabase
+        .from("inventory_parts")
+        .select("id, model, part_views")
+        .order("part_views", { ascending: false })
+        .limit(10);
 
-        if (error) throw error;
+      if (error) throw error;
 
-        setViewData(data || []);
-      } catch (err) {
-        console.error("Error fetching viewed parts:", err);
-      } finally {
-        setLoadingViews(false);
-      }
-    };
-
-    fetchViewedParts();
+      setViewData(data || []);
+    } catch (err) {
+      console.error("Error fetching viewed parts:", err);
+    } finally {
+      setLoadingViews(false);
+    }
   }, []);
+
+  // 🔄 Fetch on mount
+  useEffect(() => {
+    fetchSalesData();
+    fetchViewedParts();
+  }, [fetchSalesData, fetchViewedParts]);
+
+  // ⚡ Real-time updates from Supabase when a sale is added
+  useEffect(() => {
+    const channel = supabase
+      .channel("realtime_sales_updates")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "sales_history" },
+        (payload) => {
+          console.log("📦 Sales updated:", payload);
+          fetchSalesData(); // refresh chart
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchSalesData]);
 
   // 🌓 Sync dark mode
   useEffect(() => {
@@ -94,7 +117,24 @@ export default function OwnerDashboard({ isDark }) {
 
       {/* === TOP SOLD PARTS === */}
       <section className={`chart-section ${isDark ? "dark" : ""}`}>
-        <h2>Top Sold Parts (by Quantity)</h2>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h2>Top Sold Parts (by Quantity)</h2>
+          <button
+            onClick={fetchSalesData}
+            style={{
+              padding: "0.4rem 0.8rem",
+              borderRadius: "6px",
+              border: "none",
+              background: isDark ? "#3b82f6" : "#2563eb",
+              color: "#fff",
+              cursor: "pointer",
+              fontSize: "0.9rem",
+            }}
+          >
+            Refresh
+          </button>
+        </div>
+
         {loadingSales ? (
           <p>Loading Top Sold Parts...</p>
         ) : salesData.length === 0 ? (
