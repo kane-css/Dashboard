@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { supabase } from "./supabase";
-import { useLocation } from "react-router-dom";
 
 // Owner Components
 import ResetPassword from "./components/auth/ResetPassword";
@@ -21,106 +20,91 @@ import AdminSidebar from "./components/admin/AdminSidebar";
 
 export default function App() {
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [sessionChecked, setSessionChecked] = useState(false);
+  const [session, setSession] = useState(null);
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem("darkMode") === "true");
 
-  // ✅ Dark mode persistence
-  const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.getItem("darkMode") === "true";
-  });
-
-  // ✅ Sync dark mode with <body> + localStorage
+  // ✅ Persist dark mode
   useEffect(() => {
     document.body.classList.toggle("dark", darkMode);
     localStorage.setItem("darkMode", darkMode);
   }, [darkMode]);
 
-//     const navigates = useNavigate();
-//     const location = useLocation();
-
-//     useEffect(() => {
-//   const handleRecoverySession = async () => {
-//     if (location.hash.includes("access_token") && location.hash.includes("type=recovery")) {
-//       const hashParams = new URLSearchParams(location.hash.replace("#", ""));
-//       const access_token = hashParams.get("access_token");
-//       const refresh_token = hashParams.get("refresh_token");
-
-//       if (access_token && refresh_token) {
-//         // Set Supabase session manually using the tokens in the URL
-//         const { data, error } = await supabase.auth.setSession({
-//           access_token,
-//           refresh_token,
-//         });
-
-//         if (error) {
-//           console.error("❌ Failed to set recovery session:", error.message);
-//         } else {
-//           console.log("✅ Recovery session restored successfully!");
-//           navigates("/resetpassword");
-//         }
-//       }
-//     }
-//   };
-
-//   handleRecoverySession();
-// }, [location, navigate]);
-
-
-
-
-  // ✅ Check Supabase session
+  // ✅ Initialize Supabase session
   useEffect(() => {
-    const getSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+    let mounted = true;
 
-      if (session) {
-        setIsLoggedIn(true);
-        setUserRole(session.user.user_metadata.role || "owner");
-      } else {
-        setIsLoggedIn(false);
-        setUserRole(null);
+    const initSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (mounted) {
+        setSession(data.session);
+        setSessionChecked(true);
       }
-      setLoading(false);
     };
 
-    getSession();
+    initSession();
 
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (session) {
-          setIsLoggedIn(true);
-          setUserRole(session.user.user_metadata.role || "owner");
-        } else {
-          setIsLoggedIn(false);
-          setUserRole(null);
-        }
-      }
-    );
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (mounted) setSession(session);
+    });
 
-    return () => listener.subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
-  // ✅ Login/logout handlers
-  const handleLogin = (role) => {
-    setIsLoggedIn(true);
-    setUserRole(role);
-    navigate(role === "admin" ? "/admin-dashboard" : "/dashboard");
-  };
+  // ✅ Handle automatic navigation (no flickering)
+  useEffect(() => {
+    if (!sessionChecked) return;
 
+    const currentPath = window.location.hash.replace("#", "");
+    const isAuthPage = ["/", "/signin", "/signup", "/resetpassword"].includes(currentPath);
+
+    if (session) {
+      const role = session.user.user_metadata.role || "owner";
+      const target = role === "admin" ? "/admin-dashboard" : "/dashboard";
+
+      // Redirect only if on signin/signup/resetpassword pages
+      if (isAuthPage && currentPath !== target) {
+        navigate(target, { replace: true });
+      }
+    } else {
+      // Redirect to signin if user is logged out and not on signup/reset
+      if (!["/signup", "/resetpassword", "/signin", "/"].includes(currentPath)) {
+        navigate("/signin", { replace: true });
+      }
+    }
+  }, [session, sessionChecked, navigate]);
+
+  // ✅ Logout handler
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    setIsLoggedIn(false);
-    setUserRole(null);
-    navigate("/signin");
+    setSession(null);
+    navigate("/signin", { replace: true });
   };
 
-  // ✅ Layout wrapper — shared for both Admin and Owner
-  const renderWithLayout = (PageComponent, SidebarComponent) => (
+  // ✅ Loading screen
+  if (!sessionChecked) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          background: darkMode ? "#121212" : "#fff",
+          color: darkMode ? "#fff" : "#000",
+        }}
+      >
+        <h2>Loading...</h2>
+      </div>
+    );
+  }
+
+  // ✅ Layout wrapper
+  const renderWithLayout = (Page, SidebarComponent) => (
     <div
-      className={`layout-wrapper ${darkMode ? "dark" : ""}`}
       style={{
         display: "flex",
         minHeight: "100vh",
@@ -133,95 +117,81 @@ export default function App() {
         isDark={darkMode}
         toggleDarkMode={() => setDarkMode((prev) => !prev)}
       />
-      <div className="layout-content" style={{ flexGrow: 1 }}>
-        <PageComponent onLogout={handleLogout} isDark={darkMode} />
+      <div style={{ flexGrow: 1 }}>
+        <Page onLogout={handleLogout} isDark={darkMode} />
       </div>
     </div>
   );
 
-  if (loading) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-        }}
-      >
-        <h2>Loading...</h2>
-      </div>
-    );
-  }
+  const role = session?.user?.user_metadata?.role || "owner";
 
+  // ✅ App routes
   return (
     <Routes>
-      {/* Auth routes */}
-      <Route path="/" element={<Navigate to="/signin" />} />
-      <Route path="/signin" element={<SignIn onLogin={handleLogin} />} />
+      <Route path="/" element={<Navigate to="/signin" replace />} />
+      <Route path="/signin" element={<SignIn />} />
       <Route path="/signup" element={<SignUp />} />
       <Route path="/resetpassword" element={<ResetPassword />} />
 
-      {/* Owner routes */}
+      {/* Owner Routes */}
       <Route
         path="/dashboard"
         element={
-          isLoggedIn && userRole === "owner"
+          session && role === "owner"
             ? renderWithLayout(Dashboard, Sidebar)
-            : <Navigate to="/signin" />
+            : <Navigate to="/signin" replace />
         }
       />
       <Route
         path="/inventory"
         element={
-          isLoggedIn && userRole === "owner"
+          session && role === "owner"
             ? renderWithLayout(Inventory, Sidebar)
-            : <Navigate to="/signin" />
+            : <Navigate to="/signin" replace />
         }
       />
       <Route
         path="/customized"
         element={
-          isLoggedIn && userRole === "owner"
+          session && role === "owner"
             ? renderWithLayout(CustomizedParts, Sidebar)
-            : <Navigate to="/signin" />
+            : <Navigate to="/signin" replace />
         }
       />
       <Route
         path="/settings"
         element={
-          isLoggedIn && userRole === "owner"
+          session && role === "owner"
             ? renderWithLayout(AccountSettings, Sidebar)
-            : <Navigate to="/signin" />
+            : <Navigate to="/signin" replace />
         }
       />
 
-      {/* Admin routes */}
+      {/* Admin Routes */}
       <Route
         path="/admin-dashboard"
         element={
-          isLoggedIn && userRole === "admin"
+          session && role === "admin"
             ? renderWithLayout(AdminDashboard, AdminSidebar)
-            : <Navigate to="/signin" />
+            : <Navigate to="/signin" replace />
         }
       />
       <Route
         path="/admin/manage-shop"
         element={
-          isLoggedIn && userRole === "admin"
+          session && role === "admin"
             ? renderWithLayout(AdminManageShop, AdminSidebar)
-            : <Navigate to="/signin" />
+            : <Navigate to="/signin" replace />
         }
       />
       <Route
         path="/admin/manage-parts"
         element={
-          isLoggedIn && userRole === "admin"
+          session && role === "admin"
             ? renderWithLayout(AdminManageParts, AdminSidebar)
-            : <Navigate to="/signin" />
+            : <Navigate to="/signin" replace />
         }
       />
     </Routes>
   );
-  
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { Sun, Moon } from "lucide-react";
@@ -13,49 +13,23 @@ export default function SignIn({ onLogin }) {
   const [isDark, setIsDark] = useState(() => localStorage.getItem("theme") === "dark");
 
   const navigate = useNavigate();
-  const hasRedirected = useRef(false); // 🧩 prevent multiple navigations
 
-  // ---- Theme handling ----
+  // ✅ Theme handler
   useEffect(() => {
     document.body.classList.toggle("dark", isDark);
     localStorage.setItem("theme", isDark ? "dark" : "light");
   }, [isDark]);
 
-  // ---- Check for active session (run once) ----
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session && !hasRedirected.current) {
-        hasRedirected.current = true; // 🧩 prevent loop
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", data.session.user.id)
-          .single();
-
-        if (profile) {
-          const redirectPath =
-            profile.role === "owner" ? "/dashboard" : "/admin-dashboard";
-          navigate(redirectPath, { replace: true });
-        }
-      }
-    };
-    checkSession();
-  }, [navigate]);
-
-  // ---- Email validator ----
+  // ✅ Validate email
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-  // ---- Handle login ----
-  const handleLogin = async (event) => {
-    event.preventDefault();
+  // ✅ Handle login (no redirect flicker)
+  const handleLogin = async (e) => {
+    e.preventDefault();
 
-    if (!email.trim())
-      return Swal.fire("Validation Error", "Email is required.", "warning");
-    if (!validateEmail(email))
-      return Swal.fire("Validation Error", "Please enter a valid email.", "warning");
-    if (!password)
-      return Swal.fire("Validation Error", "Password is required.", "warning");
+    if (!email.trim()) return Swal.fire("Error", "Email is required.", "warning");
+    if (!validateEmail(email)) return Swal.fire("Error", "Invalid email format.", "warning");
+    if (!password) return Swal.fire("Error", "Password is required.", "warning");
 
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
@@ -70,20 +44,20 @@ export default function SignIn({ onLogin }) {
       .eq("id", authData.user.id)
       .single();
 
-    if (profileError)
-      return Swal.fire("Profile Not Found", "Your user profile doesn't exist.", "error");
+    if (profileError) return Swal.fire("Error", "User profile not found.", "error");
+
     if (profile.status === "pending") {
       await supabase.auth.signOut();
       return Swal.fire("Account Pending", "Your account is awaiting approval.", "info");
     }
+
     if (profile.status === "suspended") {
       await supabase.auth.signOut();
       return Swal.fire("Account Suspended", "This account is suspended.", "warning");
     }
 
-    onLogin(profile.role);
-    const redirectPath = profile.role === "owner" ? "/dashboard" : "/admin-dashboard";
-    navigate(redirectPath, { replace: true });
+    onLogin(profile.role); // ✅ triggers navigation in App.jsx
+    Swal.fire("Success", "Login successful!", "success");
   };
 
   return (
@@ -107,9 +81,7 @@ export default function SignIn({ onLogin }) {
           onChange={(e) => setPassword(e.target.value)}
         />
 
-        <button type="submit" className="auth-button">
-          Login
-        </button>
+        <button type="submit" className="auth-button">Login</button>
 
         <p
           className="forgot-pass"
@@ -134,7 +106,6 @@ export default function SignIn({ onLogin }) {
         {isDark ? <Sun size={20} /> : <Moon size={20} />}
       </button>
 
-      {/* Forgot Password Modal */}
       {showForgotModal && (
         <div className="modal-overlay">
           <div className="modal-box">
@@ -157,14 +128,8 @@ export default function SignIn({ onLogin }) {
                 const { error } = await supabase.auth.resetPasswordForEmail(email, {
                   redirectTo: "http://localhost:5173/resetpassword",
                 });
-                if (error)
-                  Swal.fire("Error", error.message, "error");
-                else
-                  Swal.fire(
-                    "Email Sent",
-                    "A reset link has been sent to your email.",
-                    "success"
-                  );
+                if (error) Swal.fire("Error", error.message, "error");
+                else Swal.fire("Email Sent", "Check your email for reset link.", "success");
               }}
             >
               Send Reset Link
