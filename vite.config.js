@@ -1,8 +1,8 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vite.dev/config/
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/Dashboard/', // 👈 VERY IMPORTANT for GitHub Pages
+  base: '/my-dashboard/', // 👈 this line fixes your GitHub Pages path
 })
