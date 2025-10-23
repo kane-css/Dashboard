@@ -36,35 +36,35 @@ export default function App() {
     localStorage.setItem("darkMode", darkMode);
   }, [darkMode]);
 
-    const navigates = useNavigate();
-    const location = useLocation();
+//     const navigates = useNavigate();
+//     const location = useLocation();
 
-    useEffect(() => {
-  const handleRecoverySession = async () => {
-    if (location.hash.includes("access_token") && location.hash.includes("type=recovery")) {
-      const hashParams = new URLSearchParams(location.hash.replace("#", ""));
-      const access_token = hashParams.get("access_token");
-      const refresh_token = hashParams.get("refresh_token");
+//     useEffect(() => {
+//   const handleRecoverySession = async () => {
+//     if (location.hash.includes("access_token") && location.hash.includes("type=recovery")) {
+//       const hashParams = new URLSearchParams(location.hash.replace("#", ""));
+//       const access_token = hashParams.get("access_token");
+//       const refresh_token = hashParams.get("refresh_token");
 
-      if (access_token && refresh_token) {
-        // Set Supabase session manually using the tokens in the URL
-        const { data, error } = await supabase.auth.setSession({
-          access_token,
-          refresh_token,
-        });
+//       if (access_token && refresh_token) {
+//         // Set Supabase session manually using the tokens in the URL
+//         const { data, error } = await supabase.auth.setSession({
+//           access_token,
+//           refresh_token,
+//         });
 
-        if (error) {
-          console.error("❌ Failed to set recovery session:", error.message);
-        } else {
-          console.log("✅ Recovery session restored successfully!");
-          navigates("/resetpassword");
-        }
-      }
-    }
-  };
+//         if (error) {
+//           console.error("❌ Failed to set recovery session:", error.message);
+//         } else {
+//           console.log("✅ Recovery session restored successfully!");
+//           navigates("/resetpassword");
+//         }
+//       }
+//     }
+//   };
 
-  handleRecoverySession();
-}, [location, navigate]);
+//   handleRecoverySession();
+// }, [location, navigate]);
 
 
 
@@ -160,7 +160,7 @@ export default function App() {
       <Route path="/" element={<Navigate to="/signin" />} />
       <Route path="/signin" element={<SignIn onLogin={handleLogin} />} />
       <Route path="/signup" element={<SignUp />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/resetpassword" element={<ResetPassword />} />
 
       {/* Owner routes */}
       <Route

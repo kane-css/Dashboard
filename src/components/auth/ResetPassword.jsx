@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../supabase";
 import Swal from "sweetalert2";
@@ -9,6 +9,20 @@ export default function ResetPassword() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Verify user has an active session
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        Swal.fire('Error', 'Invalid or expired reset link. Please request a new one.', 'error');
+        navigate('/forgot-password');
+      }
+    };
+
+    checkSession();
+  }, [navigate]);
+
   const handleResetPassword = async (e) => {
     e.preventDefault();
 
@@ -17,13 +31,21 @@ export default function ResetPassword() {
       return;
     }
 
+    if (password.length < 6) {
+      Swal.fire("Error", "Password must be at least 6 characters long!", "error");
+      return;
+    }
+
     try {
       setLoading(true);
-      const { data, error } = await supabase.auth.updateUser({ password });
+      const { error } = await supabase.auth.updateUser({ password });
 
       if (error) throw error;
 
       Swal.fire("Success", "Password has been successfully reset!", "success");
+      
+      // Sign out after password reset
+      await supabase.auth.signOut();
       navigate("/signin");
     } catch (err) {
       Swal.fire("Error", err.message, "error");
