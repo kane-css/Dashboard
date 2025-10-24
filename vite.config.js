@@ -1,10 +1,7 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  base: '/Dashboard/', // needed for GitHub Pages
-  build: {
-    outDir: 'dist',
-  },
-})
+  base: '/Dashboard/', // 👈 must match repo name exactly
+});
