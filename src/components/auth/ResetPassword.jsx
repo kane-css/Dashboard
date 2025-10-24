@@ -7,20 +7,48 @@ export default function ResetPassword() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const navigate = useNavigate();
 
-  // Verify user has an active session
   useEffect(() => {
-    const checkSession = async () => {
+    let timeoutId;
+
+    const handleAuthStateChange = async () => {
+      // Wait a bit for Supabase to process the hash
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
-        Swal.fire('Error', 'Invalid or expired reset link. Please request a new one.', 'error');
+        Swal.fire({
+          title: 'Error',
+          text: 'Invalid or expired reset link. Please request a new one.',
+          icon: 'error'
+        });
         navigate('/forgot-password');
+      } else {
+        setCheckingSession(false);
       }
     };
 
-    checkSession();
+    // Listen for password recovery event
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        console.log('Password recovery detected');
+        setCheckingSession(false);
+      } else if (event === 'SIGNED_IN' && session) {
+        console.log('Session established');
+        setCheckingSession(false);
+      }
+    });
+
+    // Start checking after a delay
+    timeoutId = setTimeout(handleAuthStateChange, 500);
+
+    return () => {
+      clearTimeout(timeoutId);
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const handleResetPassword = async (e) => {
@@ -42,7 +70,7 @@ export default function ResetPassword() {
 
       if (error) throw error;
 
-      Swal.fire("Success", "Password has been successfully reset!", "success");
+      await Swal.fire("Success", "Password has been successfully reset!", "success");
       
       // Sign out after password reset
       await supabase.auth.signOut();
@@ -54,6 +82,25 @@ export default function ResetPassword() {
       setLoading(false);
     }
   };
+
+  if (checkingSession) {
+    return (
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{
+            border: "4px solid #f3f3f3",
+            borderTop: "4px solid #3498db",
+            borderRadius: "50%",
+            width: "40px",
+            height: "40px",
+            animation: "spin 1s linear infinite",
+            margin: "0 auto 20px"
+          }}></div>
+          <p>Verifying reset link...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
@@ -75,7 +122,7 @@ export default function ResetPassword() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          style={{ width: "100%", padding: "10px", margin: "10px 0" }}
+          style={{ width: "100%", padding: "10px", margin: "10px 0", boxSizing: "border-box" }}
         />
         <input
           type="password"
@@ -83,7 +130,7 @@ export default function ResetPassword() {
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
-          style={{ width: "100%", padding: "10px", margin: "10px 0" }}
+          style={{ width: "100%", padding: "10px", margin: "10px 0", boxSizing: "border-box" }}
         />
         <button type="submit" disabled={loading} style={{ width: "100%", padding: "10px" }}>
           {loading ? "Updating..." : "Confirm"}
