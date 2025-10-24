@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Password</title>
+</head>
+<body>
+    <p>Redirecting...</p>
+    
+    <script>
+        console.log('=== RESET PASSWORD DEBUG ===');
+        console.log('Full URL:', window.location.href);
+        console.log('Hash:', window.location.hash);
+        
+        const hash = window.location.hash;
+        
+        if (hash && hash.includes('access_token')) {
+            console.log('Redirecting with tokens...');
+            window.location.replace('/Dashboard/#/resetpassword' + hash);
+        } else {
+            console.log('No tokens found');
+            alert('Invalid or expired reset link');
+            window.location.replace('/Dashboard/#/forgot-password');
+        }
+    </script>
+</body>
+</html>
