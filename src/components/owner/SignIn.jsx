@@ -10,6 +10,11 @@ export default function SignIn({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showForgotModal, setShowForgotModal] = useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [resetCode, setResetCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [resetEmail, setResetEmail] = useState(""); // Store email for reset
   const [isDark, setIsDark] = useState(() => localStorage.getItem("theme") === "dark");
 
   const navigate = useNavigate();
@@ -60,6 +65,30 @@ export default function SignIn({ onLogin }) {
     Swal.fire("Success", "Login successful!", "success");
   };
 
+  // ✅ Handle sending reset code
+  const handleSendResetCode = async () => {
+    if (!email.trim()) {
+      Swal.fire("Error", "Please enter your email", "warning");
+      return;
+    }
+    if (!validateEmail(email)) {
+      Swal.fire("Error", "Invalid email format", "warning");
+      return;
+    }
+
+    // Modified: Remove redirectTo to send OTP code instead of link
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+
+    if (error) {
+      Swal.fire("Error", error.message, "error");
+    } else {
+      setResetEmail(email); // Save email for password reset
+      setShowForgotModal(false);
+      setShowChangePasswordModal(true);
+      Swal.fire("Code Sent", "Check your email for the reset code.", "success");
+    }
+  };
+
   return (
     <div className="auth-container">
       <form className="auth-box" onSubmit={handleLogin}>
@@ -106,12 +135,13 @@ export default function SignIn({ onLogin }) {
         {isDark ? <Sun size={20} /> : <Moon size={20} />}
       </button>
 
+      {/* Forgot Password Modal - Step 1: Send Reset Code */}
       {showForgotModal && (
         <div className="modal-overlay">
           <div className="modal-box">
             <h3>Forgot Password</h3>
             <p style={{ fontSize: "0.9rem", color: "#777" }}>
-              You’ll receive a password reset link to your email.
+              You'll receive a password reset code to your email.
             </p>
 
             <input
@@ -124,20 +154,118 @@ export default function SignIn({ onLogin }) {
 
             <button
               className="auth-button"
-              onClick={async () => {
-                const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                  redirectTo: "http://localhost:5173/resetpassword",
-                });
-                if (error) Swal.fire("Error", error.message, "error");
-                else Swal.fire("Email Sent", "Check your email for reset link.", "success");
-              }}
+              onClick={handleSendResetCode}
             >
-              Send Reset Link
+              Send Reset Code
             </button>
 
             <p
               className="modal-close"
               onClick={() => setShowForgotModal(false)}
+              style={{ marginTop: "10px", cursor: "pointer", color: "red" }}
+            >
+              Cancel
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Change Password Modal - Step 2: Enter Code and New Password */}
+      {showChangePasswordModal && (
+        <div className="modal-overlay">
+          <div className="modal-box">
+            <h3>Change Password</h3>
+            <p style={{ fontSize: "0.9rem", color: "#777" }}>
+              Enter the reset code from your email and your new password.
+            </p>
+
+            <input
+              type="text"
+              placeholder="Enter Reset Code"
+              className="auth-input"
+              value={resetCode}
+              onChange={(e) => setResetCode(e.target.value)}
+            />
+
+            <input
+              type="password"
+              placeholder="New Password"
+              className="auth-input"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+
+            <input
+              type="password"
+              placeholder="Confirm New Password"
+              className="auth-input"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+
+            <button
+              className="auth-button"
+              onClick={async () => {
+                if (!resetCode.trim()) {
+                  Swal.fire("Error", "Please enter the reset code", "error");
+                  return;
+                }
+                if (!newPassword.trim() || !confirmPassword.trim()) {
+                  Swal.fire("Error", "Please fill in all password fields", "error");
+                  return;
+                }
+                if (newPassword !== confirmPassword) {
+                  Swal.fire("Error", "Passwords do not match", "error");
+                  return;
+                }
+                if (newPassword.length < 6) {
+                  Swal.fire("Error", "Password must be at least 6 characters", "error");
+                  return;
+                }
+
+                const { error } = await supabase.auth.verifyOtp({
+                  email: resetEmail,
+                  token: resetCode,
+                  type: 'recovery'
+                });
+
+                if (error) {
+                  Swal.fire("Error", "Invalid reset code", "error");
+                  return;
+                }
+
+                const { error: updateError } = await supabase.auth.updateUser({
+                  password: newPassword
+                });
+
+                if (updateError) {
+                  Swal.fire("Error", updateError.message, "error");
+                } else {
+                  // ✅ Sign out after successful password change to prevent auto-login
+                  await supabase.auth.signOut();
+                  Swal.fire("Success", "Password changed successfully! Please log in with your new password.", "success");
+                  setShowChangePasswordModal(false);
+                  setResetCode("");
+                  setNewPassword("");
+                  setConfirmPassword("");
+                  setResetEmail("");
+                  // ✅ Navigate back to sign-in page
+                  navigate("/signin", { replace: true });
+                }
+              }}
+            >
+              Change Password
+            </button>
+
+            <p
+              className="modal-close"
+              onClick={() => {
+                setShowChangePasswordModal(false);
+                setResetCode("");
+                setNewPassword("");
+                setConfirmPassword("");
+                setResetEmail("");
+              }}
               style={{ marginTop: "10px", cursor: "pointer", color: "red" }}
             >
               Cancel
