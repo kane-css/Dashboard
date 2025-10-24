@@ -3,5 +3,8 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/Dashboard/', // must match your repo name EXACTLY
+  base: '/Dashboard/', // 👈 your repo name, with slashes!
+  build: {
+    outDir: 'dist',
+  },
 })
