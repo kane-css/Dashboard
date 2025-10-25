@@ -19,16 +19,11 @@ export default function SignIn({ onLogin }) {
 
   const navigate = useNavigate();
 
-  // ✅ Theme handler
   useEffect(() => {
     document.body.classList.toggle("dark", isDark);
     localStorage.setItem("theme", isDark ? "dark" : "light");
   }, [isDark]);
-
-  // ✅ Validate email
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-  // ✅ Handle login (no redirect flicker)
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -61,11 +56,10 @@ export default function SignIn({ onLogin }) {
       return Swal.fire("Account Suspended", "This account is suspended.", "warning");
     }
 
-    onLogin(profile.role); // ✅ triggers navigation in App.jsx
+    onLogin(profile.role); 
     Swal.fire("Success", "Login successful!", "success");
   };
 
-  // ✅ Handle sending reset code
   const handleSendResetCode = async () => {
     if (!email.trim()) {
       Swal.fire("Error", "Please enter your email", "warning");
@@ -76,13 +70,12 @@ export default function SignIn({ onLogin }) {
       return;
     }
 
-    // Modified: Remove redirectTo to send OTP code instead of link
     const { error } = await supabase.auth.resetPasswordForEmail(email);
 
     if (error) {
       Swal.fire("Error", error.message, "error");
     } else {
-      setResetEmail(email); // Save email for password reset
+      setResetEmail(email); 
       setShowForgotModal(false);
       setShowChangePasswordModal(true);
       Swal.fire("Code Sent", "Check your email for the reset code.", "success");
@@ -241,7 +234,7 @@ export default function SignIn({ onLogin }) {
                 if (updateError) {
                   Swal.fire("Error", updateError.message, "error");
                 } else {
-                  // ✅ Sign out after successful password change to prevent auto-login
+                  // Sign out after successful password change to prevent auto-login
                   await supabase.auth.signOut();
                   Swal.fire("Success", "Password changed successfully! Please log in with your new password.", "success");
                   setShowChangePasswordModal(false);
@@ -249,7 +242,7 @@ export default function SignIn({ onLogin }) {
                   setNewPassword("");
                   setConfirmPassword("");
                   setResetEmail("");
-                  // ✅ Navigate back to sign-in page
+                  // Navigate back to sign-in page
                   navigate("/signin", { replace: true });
                 }
               }}

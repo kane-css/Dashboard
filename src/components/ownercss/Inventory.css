@@ -1,7 +1,3 @@
-/* ================================
-   Admin Manage Parts - Updated CSS
-   ================================ */
-
 .inventory-container {
   display: flex;
   justify-content: center;
@@ -78,7 +74,6 @@
   background-color: #ea580c;
 }
 
-/* --- Delete selected button --- */
 .delete-selected-btn {
   background-color: #ef4444;
   color: white;
@@ -97,9 +92,6 @@
   background-color: #b91c1c;
 }
 
-/* ================================
-   Table layout and alignment
-   ================================ */
 .inventory-table {
   width: 100%;
   border-collapse: collapse;
@@ -135,7 +127,6 @@
   background: #fafafc;
 }
 
-/* --- Buttons for actions --- */
 .add-stock-btn,
 .sold-btn {
   padding: 6px 12px;
@@ -163,7 +154,6 @@
   transform: translateY(-1px);
 }
 
-/* Responsive */
 @media (max-width: 980px) {
   .inventory-header,
   .inventory-row {
@@ -177,9 +167,6 @@
   }
 }
 
-/* ================================
-   Edit Product Modal Styles
-   ================================ */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -280,7 +267,6 @@
   background-color: #4b5563;
 }
 
-/* Responsive for modal */
 @media (max-width: 480px) {
   .modal-content {
     width: 95vw;

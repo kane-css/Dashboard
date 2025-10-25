@@ -11,7 +11,7 @@ export default function AccountSettings() {
   const [archives, setArchives] = useState([]);
   const navigate = useNavigate();
 
-  // 🔹 Fetch users for "Manage User Access"
+  // Fetch users for "Manage User Access"
   useEffect(() => {
     const fetchUsers = async () => {
       const {
@@ -29,7 +29,7 @@ export default function AccountSettings() {
     if (showManageModal) fetchUsers();
   }, [showManageModal]);
 
-  // 🔹 Fetch archived products
+  // Fetch archived products
   useEffect(() => {
     const fetchArchives = async () => {
       const { data, error } = await supabase
@@ -118,7 +118,7 @@ export default function AccountSettings() {
     }
   };
 
-  // ✅ Dark mode support for Log Out SweetAlert
+  
   const handleLogoutConfirm = () => {
     const isDarkMode = document.body.classList.contains("dark");
 
@@ -140,7 +140,7 @@ export default function AccountSettings() {
     });
   };
 
-  // 🔹 Restore Archived Product
+  // Restore Archived Product
   const handleRestore = async (id) => {
     const isDarkMode = document.body.classList.contains("dark");
 

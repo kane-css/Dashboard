@@ -4,7 +4,7 @@
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background: var(--bg-color);   /* adapts */
+  background: var(--bg-color);
   color: var(--text-color);
   transition: background 0.3s, color 0.3s;
 }
@@ -18,7 +18,7 @@
 .form-box {
   display: flex;
   flex-direction: column;
-  background: var(--input-bg);   /* adapts */
+  background: var(--input-bg);
   padding: 30px;
   border-radius: 10px;
   width: 300px;
@@ -36,7 +36,7 @@
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 6px;
-  background: var(--bg-color);   /* white in light, black in dark */
+  background: var(--bg-color); 
   color: var(--text-color);
   transition: background 0.3s, color 0.3s;
 }
@@ -44,7 +44,7 @@
 .form-box button {
   padding: 10px;
   border: none;
-  background: var(--button-bg);  /* adapts */
+  background: var(--button-bg); 
   color: var(--text-color);
   border-radius: 6px;
   cursor: pointer;

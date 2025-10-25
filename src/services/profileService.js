@@ -1,6 +1,6 @@
 import { supabase } from "../supabase";
 
-// ✅ Upload image to storage
+// Upload image to storage
 export async function uploadProfileImage(file, userId) {
   const fileExt = file.name.split(".").pop();
   const fileName = `${userId}.${fileExt}`;
@@ -18,7 +18,7 @@ export async function uploadProfileImage(file, userId) {
   return data.publicUrl;
 }
 
-// ✅ Update profile info
+//  Update profile info
 export async function updateProfile(userId, updates) {
   const { data, error } = await supabase
     .from("profiles")

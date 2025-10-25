@@ -1,8 +1,8 @@
-/* 🌞 Light Mode */
+
 .admin-manage-shop-container {
   display: flex;
-  justify-content: center; /* <-- Center horizontally */
-  align-items: center; /* <-- Center vertically */
+  justify-content: center; 
+  align-items: center; 
   padding: 2rem;
   background: #f9f9f9;
   min-height: 100vh;
@@ -11,9 +11,9 @@
   box-sizing: border-box;
 }
 
-/* ✅ Centered Card */
+
 .admin-card {
-  position: relative; /* <-- Remove fixed positioning */
+  position: relative; 
   background: #fff;
   border-radius: 12px;
   padding: 2rem;
@@ -29,7 +29,7 @@
   font-weight: 600;
 }
 
-/* ✅ Button Group */
+
 .admin-button-group {
   display: flex;
   flex-direction: column;
@@ -56,7 +56,7 @@
   background: #ddd;
 }
 
-/* ✅ Logout Button (Centered Content) */
+
 .logout-btn {
   display: flex;
   justify-content: center;
@@ -83,7 +83,7 @@
   vertical-align: middle;
 }
 
-/* 🌙 Dark Mode */
+
 .dark .admin-manage-shop-container {
   background: #1e1e1e;
   color: #f1f1f1;
@@ -110,7 +110,7 @@
 .dark .logout-btn:hover {
   background: #dc3545;
 }
-/* 🌙 SweetAlert2 Dark Mode Fix */
+
 .dark .swal2-popup {
   background: #1e1e1e !important;
   color: #f1f1f1 !important;

@@ -14,7 +14,6 @@ export default function ResetPassword() {
     let timeoutId;
 
     const handleAuthStateChange = async () => {
-      // Wait a bit for Supabase to process the hash
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       const { data: { session } } = await supabase.auth.getSession();
@@ -31,7 +30,6 @@ export default function ResetPassword() {
       }
     };
 
-    // Listen for password recovery event
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
         console.log('Password recovery detected');
@@ -42,7 +40,6 @@ export default function ResetPassword() {
       }
     });
 
-    // Start checking after a delay
     timeoutId = setTimeout(handleAuthStateChange, 500);
 
     return () => {
@@ -72,7 +69,6 @@ export default function ResetPassword() {
 
       await Swal.fire("Success", "Password has been successfully reset!", "success");
       
-      // Sign out after password reset
       await supabase.auth.signOut();
       navigate("/signin");
     } catch (err) {

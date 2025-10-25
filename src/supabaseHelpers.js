@@ -3,7 +3,7 @@ export async function logInteraction(partId, customerId, interactionType) {
   const { data, error } = await supabase.from('part_interactions').insert([
     {
       part_id: partId,
-      customer_id: customerId, // optional, can be null
+      customer_id: customerId, 
       interaction_type: interactionType,
     },
   ]);

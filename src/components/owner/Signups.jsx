@@ -16,14 +16,10 @@ export default function SignUp() {
   });
 
   const navigate = useNavigate();
-
-  // ✅ Apply dark mode globally and store preference
   useEffect(() => {
     document.body.classList.toggle("dark", isDark);
     localStorage.setItem("theme", isDark ? "dark" : "light");
   }, [isDark]);
-
-  // ✅ Redirect if already logged in
   useEffect(() => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
@@ -130,7 +126,7 @@ export default function SignUp() {
         </p>
       </form>
 
-      {/* ✅ Always visible toggle button */}
+      {/* Always visible toggle button */}
       <button
         className={`toggle-btn ${isDark ? "dark-mode" : "light-mode"}`}
         onClick={() => setIsDark(!isDark)}

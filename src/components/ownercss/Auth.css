@@ -12,7 +12,6 @@ body:not(.dark) .auth-container {
   background-color: #f7f7f7;
 }
 
-/* === Auth Box === */
 .auth-box {
   background-color: #1e1e1e;
   padding: 40px;
@@ -28,14 +27,12 @@ body:not(.dark) .auth-box {
   background-color: #ffffff;
 }
 
-/* === Logo === */
 .auth-logo {
   width: 160px;
   margin: 0 auto 25px auto;
   display: block;
 }
 
-/* === Titles === */
 .auth-title {
   color: #ccc;
   margin-bottom: 20px;
@@ -46,7 +43,7 @@ body:not(.dark) .auth-title {
   color: #222;
 }
 
-/* === Input Fields === */
+
 .auth-input {
   width: 100%;
   padding: 12px;
@@ -70,7 +67,6 @@ body:not(.dark) .auth-title {
   outline: none;
 }
 
-/* 🌚 Dark Mode Input */
 body.dark .auth-input {
   background-color: #2a2a2a !important;
   color: #fff;
@@ -86,7 +82,7 @@ body.dark .auth-input:focus {
   box-shadow: 0 0 6px rgba(138, 180, 248, 0.4);
 }
 
-/* === Auth Button === */
+
 .auth-button {
   width: 100%;
   padding: 12px;
@@ -104,7 +100,7 @@ body.dark .auth-input:focus {
   background-color: #222;
 }
 
-/* === Switch Auth Links === */
+
 .switch-auth {
   margin-top: 15px;
   color: #aaa;
@@ -120,7 +116,7 @@ body:not(.dark) .auth-link {
   color: #000;
 }
 
-/* === Dark Mode Toggle (Auto Icon Switch) === */
+
 .toggle-btn {
   position: absolute;
   bottom: 20px;
@@ -155,7 +151,6 @@ body:not(.dark) .auth-link {
   color: #000;
 }
 
-/* 🌙 Dark Mode */
 body.dark .toggle-btn {
   background-color: #2a2a2a;
   color: #fff;
@@ -166,7 +161,6 @@ body.dark .toggle-btn:hover {
   background-color: #3a3a3a;
 }
 
-/* === Forgot Password Link === */
 .forgot-pass {
   margin-top: 10px;
   color: #8ab4f8;
@@ -180,7 +174,6 @@ body.dark .toggle-btn:hover {
   color: #b3c7ff;
 }
 
-/* === Modal Styles === */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -246,7 +239,6 @@ body:not(.dark) .modal-box h3 {
   color: #b3c7ff;
 }
 
-/* Smooth fade-in */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -257,7 +249,6 @@ body:not(.dark) .modal-box h3 {
     transform: scale(1);
   }
 }
-/* ✅ Bottom-left toggle button */
 .toggle-btn {
   position: fixed;
   bottom: 20px;

@@ -10,7 +10,7 @@ export default function AdminManageParts() {
   const [products, setProducts] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
 
-  // ✅ SweetAlert with dark/light theme
+  
   const showSwal = (options) => {
     const isDarkMode = document.body.classList.contains('dark');
     const theme = {
@@ -20,7 +20,7 @@ export default function AdminManageParts() {
     return Swal.fire({ ...options, ...theme });
   };
 
-  // ✅ Fetch data
+  
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -38,7 +38,7 @@ export default function AdminManageParts() {
     }
   };
 
-  // ✅ Add Stock
+  
   const handleAddStock = async (product) => {
     const { value } = await showSwal({
       title: `Add stock to "${product.model || ''}"`,
@@ -74,7 +74,7 @@ export default function AdminManageParts() {
     }
   };
 
-  // ✅ Mark as Sold
+  
   const handleMarkAsSold = async (product) => {
     const { value } = await showSwal({
       title: `Mark "${product.model || ''}" as sold`,
@@ -122,14 +122,14 @@ export default function AdminManageParts() {
     fetchProducts();
   };
 
-  // ✅ Handle checkbox selection
+  
   const toggleSelect = (id) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
 
-  // ✅ Archive selected items
+  
   const handleArchiveSelected = async () => {
     if (selectedIds.length === 0) {
       showSwal({ title: 'Notice', text: 'Please select items to archive.', icon: 'info' });
@@ -219,7 +219,7 @@ export default function AdminManageParts() {
           </button>
         </div>
 
-        {/* ✅ Table */}
+        {/* Table */}
         <div className="inventory-table">
           <div
             className="inventory-header"

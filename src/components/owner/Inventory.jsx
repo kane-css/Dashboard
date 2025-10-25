@@ -22,7 +22,7 @@ export default function Inventory() {
     unit: '',
   });
 
-  // ✅ Load all non-archived products
+  // Load all non-archived products
   const fetchProducts = async () => {
     const { data, error } = await supabase
       .from('inventory_parts')
@@ -60,7 +60,7 @@ export default function Inventory() {
     else setSelected([]);
   }
 
-  // 🗂️ Archive selected products
+  // Archive selected products
   async function handleArchive() {
     if (!selected.length) {
       Swal.fire('No selection', 'Please select products to archive', 'warning');
@@ -85,11 +85,9 @@ export default function Inventory() {
     else {
       Swal.fire('Archived!', 'Selected products have been archived.', 'success');
       setSelected([]);
-      fetchProducts(); // refresh the list
+      fetchProducts();
     }
   }
-
-  // Add stock
   async function handleAddStock(product) {
     const { value, isConfirmed } = await Swal.fire({
       title: `Add stock to "${product.model || product.name}"`,
@@ -149,8 +147,6 @@ export default function Inventory() {
       Swal.fire('Error', 'Failed to add stock.', 'error');
     }
   }
-
-  // Sold logic
   async function handleMarkAsSold(product) {
     const { value, isConfirmed } = await Swal.fire({
       title: `Mark "${product.model || product.name}" as sold`,
@@ -206,7 +202,6 @@ export default function Inventory() {
     }
   }
 
-  // Handle edit button click
   function handleEdit() {
     if (selected.length === 0) {
       Swal.fire('No selection', 'Please select a product to edit', 'warning');
@@ -227,12 +222,9 @@ export default function Inventory() {
     });
     setShowModal(true);
   }
-
-  // Handle save (add or edit)
   async function handleSave(e) {
     e.preventDefault();
     if (editProduct) {
-      // Edit existing product
       const { error } = await supabase
         .from('inventory_parts')
         .update({
@@ -263,14 +255,10 @@ export default function Inventory() {
         fetchProducts();
       }
     } else {
-      // Add new product (existing logic, assuming you have it)
-      // For brevity, I'll assume the add logic is similar, but since it's not in the original, I'll leave it as is or add a placeholder
-      // You can implement the add logic here if needed
       Swal.fire('Info', 'Add functionality not implemented in this snippet', 'info');
     }
   }
 
-  // Filtered products
   const filteredProducts = products
     .filter((p) => {
       const searchLower = search.toLowerCase();

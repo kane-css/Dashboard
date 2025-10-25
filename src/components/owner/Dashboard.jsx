@@ -19,32 +19,26 @@ export default function OwnerDashboard({ isDark }) {
   const [loadingSales, setLoadingSales] = useState(true);
   const [loadingViews, setLoadingViews] = useState(true);
 
-  // 🧾 Fetch Top Sold Parts
+  // Fetch Top Sold Parts
   const fetchSalesData = useCallback(async () => {
     setLoadingSales(true);
     try {
-      // Fetch sales history
       const { data: sales, error: salesError } = await supabase
         .from("sales_history")
         .select("part_id, quantity_sold");
 
       if (salesError) throw salesError;
-
-      // Count total sold per part
       const quantityMap = {};
       (sales || []).forEach((sale) => {
         quantityMap[sale.part_id] =
           (quantityMap[sale.part_id] || 0) + (sale.quantity_sold || 0);
       });
 
-      // Fetch part info
       const { data: parts, error: partsError } = await supabase
         .from("inventory_parts")
         .select("id, model");
 
       if (partsError) throw partsError;
-
-      // Merge
       const merged = (parts || [])
         .map((p) => ({
           model: p.model,
@@ -61,7 +55,7 @@ export default function OwnerDashboard({ isDark }) {
     }
   }, []);
 
-  // 👀 Fetch Top Viewed Parts
+  // Fetch Top Viewed Parts
   const fetchViewedParts = useCallback(async () => {
     setLoadingViews(true);
     try {
@@ -80,14 +74,10 @@ export default function OwnerDashboard({ isDark }) {
       setLoadingViews(false);
     }
   }, []);
-
-  // 🔄 Fetch on mount
   useEffect(() => {
     fetchSalesData();
     fetchViewedParts();
   }, [fetchSalesData, fetchViewedParts]);
-
-  // ⚡ Real-time updates from Supabase when a sale is added
   useEffect(() => {
     const channel = supabase
       .channel("realtime_sales_updates")
@@ -96,7 +86,7 @@ export default function OwnerDashboard({ isDark }) {
         { event: "*", schema: "public", table: "sales_history" },
         (payload) => {
           console.log("📦 Sales updated:", payload);
-          fetchSalesData(); // refresh chart
+          fetchSalesData(); 
         }
       )
       .subscribe();
@@ -105,8 +95,6 @@ export default function OwnerDashboard({ isDark }) {
       supabase.removeChannel(channel);
     };
   }, [fetchSalesData]);
-
-  // 🌓 Sync dark mode
   useEffect(() => {
     document.body.classList.toggle("dark", isDark);
   }, [isDark]);

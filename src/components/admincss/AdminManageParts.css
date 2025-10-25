@@ -1,22 +1,17 @@
-/* ================================
-   Dark Mode Styles (manual toggle)
-   ================================ */
-
-/* Add this class dynamically via JS or React: document.body.classList.toggle("dark-mode") */
 body.dark-mode,
 .dark-mode .inventory-container {
   background: #0a0a0a;
   color: #e5e5e5;
 }
 
-/* Card */
+
 .dark-mode .inventory-card {
   background: #1a1a1a;
   color: #e5e5e5;
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
 }
 
-/* Header & Rows */
+
 .dark-mode .inventory-header {
   background: #222;
   color: #f3f3f3;
@@ -31,7 +26,7 @@ body.dark-mode,
   background: #202020;
 }
 
-/* Inputs & dropdowns */
+
 .dark-mode .inventory-search,
 .dark-mode .inventory-dropdown,
 .dark-mode input,
@@ -41,7 +36,7 @@ body.dark-mode,
   border: 1px solid #333;
 }
 
-/* Add button */
+
 .dark-mode .add-btn {
   background-color: #333;
   color: #fff;
@@ -50,7 +45,7 @@ body.dark-mode,
   background-color: #444;
 }
 
-/* Delete selected button */
+
 .dark-mode .delete-selected-btn {
   background-color: #a11;
 }
@@ -73,7 +68,7 @@ body.dark-mode,
   background-color: #1e40af;
 }
 
-/* Modal */
+
 .dark-mode .modal-content {
   background: #1a1a1a;
   color: #f3f3f3;
@@ -91,7 +86,7 @@ body.dark-mode,
   color: #fff;
 }
 
-/* Optional: smooth transition */
+
 .inventory-container,
 .inventory-card,
 .inventory-row,

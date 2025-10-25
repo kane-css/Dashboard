@@ -1,39 +1,35 @@
-/* Reset */
 #root {
   margin: 0;
   padding: 0;
 }
 
-/* Light mode (default) */
 body {
   background-color: #f9f9f9;
   color: #222;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* ✅ Dark mode applied when body has class="dark" */
 body.dark {
   background-color: #1e1e1e;
   color: #f1f1f1;
 }
 
-/* Layout wrapper for both owner and admin */
+
 .layout-wrapper {
   display: flex;
   min-height: 100vh;
-  background-color: inherit; /* follows body */
-  color: inherit; /* follows body */
+  background-color: inherit; 
+  color: inherit; 
 }
 
 .layout-content {
   flex: 1;
   padding: 20px;
-  background-color: inherit; /* ✅ dark mode will apply */
+  background-color: inherit; 
   color: inherit;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Cards / sections */
 .card {
   padding: 2em;
   background-color: #fff;
@@ -49,7 +45,6 @@ body.dark .card {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 }
 
-/* Logo styling */
 .logo {
   height: 6em;
   padding: 1.5em;
@@ -95,9 +90,6 @@ body.dark a {
   color: #4da6ff;
 }
 
-/* ============================= */
-/* ✅ LOGIN PAGE STYLES WITH THEME */
-/* ============================= */
 .auth-container {
   display: flex;
   flex-direction: column;

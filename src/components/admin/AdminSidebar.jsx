@@ -13,7 +13,7 @@ import "../admincss/AdminSidebar.css";
 export default function AdminSidebar({ isDark, toggleDarkMode }) {
   const navigate = useNavigate();
 
-  // ✅ Apply or remove dark mode class to the <body>
+  
   useEffect(() => {
     if (isDark) {
       document.body.classList.add("dark");
@@ -24,13 +24,13 @@ export default function AdminSidebar({ isDark, toggleDarkMode }) {
 
   return (
     <div className={`admin-sidebar ${isDark ? "dark" : ""}`}>
-      {/* ✅ Profile section */}
+      {/*  Profile section */}
       <div className="profile-section">
         <FaUser className="profile-icon" />
         <h2 className="admin-logo">Admin</h2>
       </div>
 
-      {/* ✅ Navigation section */}
+      {/*  Navigation section */}
       <nav className="admin-nav">
         <button onClick={() => navigate("/admin-dashboard")}>
           <FaTachometerAlt className="nav-icon" /> <span>Overview</span>
@@ -45,7 +45,7 @@ export default function AdminSidebar({ isDark, toggleDarkMode }) {
         </button>
       </nav>
 
-      {/* ✅ Dark mode toggle */}
+      {/*  Dark mode toggle */}
       <div className="dark-toggle-wrapper">
         <button className="dark-toggle" onClick={toggleDarkMode}>
           {isDark ? <FaSun /> : <FaMoon />}

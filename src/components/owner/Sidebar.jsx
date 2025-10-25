@@ -13,7 +13,6 @@ import "../ownercss/Sidebar.css";
 export default function OwnerSidebar({ isDark, toggleDarkMode }) {
   const navigate = useNavigate();
 
-  // ✅ Add/remove "dark" class on <body>
   useEffect(() => {
     if (isDark) {
       document.body.classList.add("dark");
@@ -24,13 +23,13 @@ export default function OwnerSidebar({ isDark, toggleDarkMode }) {
 
   return (
     <div className={`owner-sidebar ${isDark ? "dark" : ""}`}>
-      {/* ✅ Top Section */}
+      {/* Top Section */}
       <div className="profile-section">
         <FaUser className="profile-icon" />
         <h2 className="owner-logo">Owner</h2>
       </div>
 
-      {/* ✅ Nav Sections */}
+      {/* Nav Sections */}
       <nav className="owner-nav">
         <button onClick={() => navigate("/dashboard")}>
           <FaTachometerAlt className="nav-icon" /> <span>Dashboard Overview</span>
@@ -43,7 +42,7 @@ export default function OwnerSidebar({ isDark, toggleDarkMode }) {
         </button>
       </nav>
 
-      {/* ✅ Dark Mode Button */}
+      {/* Dark Mode Button */}
       <div className="dark-toggle-wrapper">
         <button className="dark-toggle" onClick={toggleDarkMode}>
           {isDark ? <FaSun /> : <FaMoon />}

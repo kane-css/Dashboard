@@ -1,6 +1,4 @@
-/* ===========================
-   General Layout
-   =========================== */
+
 .account-settings {
   text-align: center;
   padding: 20px;
@@ -14,14 +12,11 @@
   transition: color 0.3s ease;
 }
 
-/* ✅ Dark mode fix for title */
+
 body.dark .account-settings h1 {
   color: #f5f5f5;
 }
 
-/* ===========================
-   Main Buttons
-   =========================== */
 .settings-buttons {
   display: flex;
   flex-direction: column;
@@ -45,7 +40,7 @@ body.dark .account-settings h1 {
   transform: scale(1.05);
 }
 
-/* Button Colors */
+
 .btn-manage,
 .btn-edit-profile,
 .btn-archives {
@@ -67,10 +62,6 @@ body.dark .account-settings h1 {
 .btn-logout:hover {
   background-color: #c82333;
 }
-
-/* ===========================
-   Modal Styling
-   =========================== */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -82,7 +73,6 @@ body.dark .account-settings h1 {
   overflow: hidden;
 }
 
-/* ✅ Widened modal box */
 .modal-box {
   background: #fff;
   padding: 35px;
@@ -100,7 +90,7 @@ body.dark .account-settings h1 {
   margin: 0 auto;
 }
 
-/* ✅ Only the list scrolls */
+
 .manage-user-access {
   flex: 1;
   overflow-y: auto;
@@ -126,10 +116,6 @@ body.dark .account-settings h1 {
   color: #111;
   margin-bottom: 20px;
 }
-
-/* ===========================
-   Manage User Access
-   =========================== */
 .manage-user-access ul {
   list-style: none;
   padding: 0;
@@ -147,7 +133,6 @@ body.dark .account-settings h1 {
   margin-bottom: 8px;
 }
 
-/* Status Badge */
 .status-badge {
   display: inline-block;
   padding: 4px 8px;
@@ -173,9 +158,6 @@ body.dark .account-settings h1 {
   color: #854d0e;
 }
 
-/* ===========================
-   Actions
-   =========================== */
 .actions {
   display: flex;
   flex-wrap: wrap;
@@ -198,7 +180,6 @@ body.dark .account-settings h1 {
   transform: scale(1.05);
 }
 
-/* Action Button Colors */
 .btn-admin {
   background-color: #2563eb;
   color: #fff;
@@ -239,9 +220,7 @@ body.dark .account-settings h1 {
   background-color: #4b5563;
 }
 
-/* ===========================
-   Edit Shop Profile Modal
-   =========================== */
+/*Edit Shop Profile Modal */
 .edit-modal {
   display: flex;
   flex-direction: column;
@@ -288,7 +267,7 @@ body.dark .account-settings h1 {
   background-color: #222;
 }
 
-/* ✅ Fixed Close Button */
+
 .close-button {
   position: sticky;
   bottom: 0;
@@ -309,9 +288,7 @@ body.dark .account-settings h1 {
   background-color: #d1d5db;
 }
 
-/* ===========================
-   Modal Box Alignment Fix
-   =========================== */
+
 .modal-box.edit-modal {
   margin: 0 auto;
   transform: none;
@@ -320,9 +297,6 @@ body.dark .account-settings h1 {
   overflow-x: hidden;
 }
 
-/* ===========================
-   🌙 Dark Mode Styles
-   =========================== */
 body.dark .modal-overlay {
   background-color: rgba(0, 0, 0, 0.8);
 }

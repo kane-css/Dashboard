@@ -19,7 +19,7 @@ export default function AdminDashboard({ isDark }) {
   const [loadingSales, setLoadingSales] = useState(true);
   const [loadingViews, setLoadingViews] = useState(true);
 
-  // 🧾 Fetch Top Sold Parts
+  // Fetch Top Sold Parts
   useEffect(() => {
     const fetchSalesData = async () => {
       try {
@@ -60,7 +60,7 @@ export default function AdminDashboard({ isDark }) {
     fetchSalesData();
   }, []);
 
-  // 👀 Fetch Top Viewed Parts
+  // Fetch Top Viewed Parts
   useEffect(() => {
     const fetchViewedParts = async () => {
       try {
@@ -83,7 +83,7 @@ export default function AdminDashboard({ isDark }) {
     fetchViewedParts();
   }, []);
 
-  // 🌓 Sync dark mode
+
   useEffect(() => {
     document.body.classList.toggle("dark", isDark);
   }, [isDark]);
@@ -92,7 +92,7 @@ export default function AdminDashboard({ isDark }) {
     <main className={`admin-dashboard-main ${isDark ? "dark" : ""}`}>
       <h1>Overview</h1>
 
-      {/* === TOP SOLD PARTS === */}
+      {/* TOP SOLD PARTS */}
       <section className={`chart-section ${isDark ? "dark" : ""}`}>
         <h2>Top Sold Parts (by Quantity)</h2>
         {loadingSales ? (
@@ -134,7 +134,7 @@ export default function AdminDashboard({ isDark }) {
         )}
       </section>
 
-      {/* === TOP VIEWED PARTS (LINE GRAPH) === */}
+      {/* TOP VIEWED PARTS (LINE GRAPH) */}
       <section className={`chart-section ${isDark ? "dark" : ""}`}>
         <h2>Top Viewed Parts</h2>
         {loadingViews ? (

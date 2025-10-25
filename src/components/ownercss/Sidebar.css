@@ -1,7 +1,7 @@
 .owner-sidebar {
   width: 230px;
   height: 100vh;
-  background-color: #ffffff; /* light mode default */
+  background-color: #ffffff;
   color: #000;
   display: flex;
   flex-direction: column;
@@ -14,13 +14,13 @@
   transition: background-color 0.3s, color 0.3s;
 }
 
-/* ✅ Dark mode sidebar */
+
 .owner-sidebar.dark {
   background-color: #000000;
   color: #fff;
 }
 
-/* ✅ Profile section */
+
 .profile-section {
   display: flex;
   flex-direction: column;
@@ -41,7 +41,6 @@
   color: inherit;
 }
 
-/* ✅ Navigation */
 .owner-nav {
   display: flex;
   flex-direction: column;
@@ -84,7 +83,6 @@
   background-color: #444;
 }
 
-/* ✅ Dark mode toggle button at bottom */
 .dark-toggle-wrapper {
   margin-top: auto;
   margin-bottom: 20px;

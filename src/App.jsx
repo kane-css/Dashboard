@@ -24,13 +24,12 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem("darkMode") === "true");
 
-  // ✅ Persist dark mode state
+
   useEffect(() => {
     document.body.classList.toggle("dark", darkMode);
     localStorage.setItem("darkMode", darkMode);
   }, [darkMode]);
 
-  // ✅ Initialize Supabase session
   useEffect(() => {
     let mounted = true;
 
@@ -54,7 +53,6 @@ export default function App() {
     };
   }, []);
 
-  // ✅ Handle automatic navigation (no flickering)
   useEffect(() => {
     if (!sessionChecked) return;
 
@@ -64,27 +62,22 @@ export default function App() {
     if (session) {
       const role = session.user.user_metadata.role || "owner";
       const target = role === "admin" ? "/admin-dashboard" : "/dashboard";
-
-      // Redirect only if currently on signin/signup/reset pages
       if (isAuthPage && currentPath !== target) {
         navigate(target, { replace: true });
       }
     } else {
-      // Redirect to signin if logged out and not on signup/reset
       if (!["/signup", "/resetpassword", "/signin", "/"].includes(currentPath)) {
         navigate("/signin", { replace: true });
       }
     }
   }, [session, sessionChecked, navigate]);
 
-  // ✅ Logout function
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setSession(null);
     navigate("/signin", { replace: true });
   };
 
-  // ✅ Loading screen while checking session
   if (!sessionChecked) {
     return (
       <div
@@ -102,7 +95,6 @@ export default function App() {
     );
   }
 
-  // ✅ Layout wrapper for Sidebar + Page
   const renderWithLayout = (Page, SidebarComponent) => (
     <div
       style={{
@@ -125,7 +117,7 @@ export default function App() {
 
   const role = session?.user?.user_metadata?.role || "owner";
 
-  // ✅ Define all routes
+  // all routes
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/signin" replace />} />

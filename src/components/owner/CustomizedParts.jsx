@@ -36,12 +36,12 @@ export default function CustomizedParts() {
 
       let filtered = data;
 
-      // ✅ Filter by category
+      // Filter by category
       if (category !== "All Categories") {
         filtered = filtered.filter((item) => item.category === category);
       }
 
-      // ✅ Normalize unit values (e.g., "Aerox V2" → "Aerox")
+
       if (unit !== "All Units") {
         const normalizedUnit = unit.replace(" V2", "");
         filtered = filtered.filter((item) => item.unit === normalizedUnit);

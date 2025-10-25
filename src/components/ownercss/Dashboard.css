@@ -1,6 +1,3 @@
-/* ================================
-   🧭 LAYOUT CONTAINER FIX
-   ================================ */
 .owner-dashboard-container {
   display: flex;
   min-height: 100vh;
@@ -8,9 +5,9 @@
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Sidebar section (added for layout fix) */
+
 .owner-sidebar {
-  width: 240px; /* Adjust based on your sidebar width */
+  width: 240px;
   background-color: #fff;
   border-right: 1px solid #ddd;
   position: fixed;
@@ -22,15 +19,12 @@
   transition: background-color 0.3s ease, border 0.3s ease;
 }
 
-/* Dark theme for sidebar */
+
 body.dark .owner-sidebar {
   background-color: #1a1a1a;
   border-right: 1px solid #333;
 }
 
-/* ================================
-   MAIN CONTENT AREA
-   ================================ */
 .owner-dashboard-main {
   flex-grow: 1;
   padding: 2rem;
@@ -49,9 +43,6 @@ body.dark .owner-dashboard-main {
   box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
 }
 
-/* ================================
-   TABLE + INVENTORY SECTION
-   ================================ */
 body.dark .inventory-container {
   background-color: #121212;
   color: #e5e5e5;
@@ -78,9 +69,6 @@ body.dark .inventory-row:hover {
   background: #202020;
 }
 
-/* ================================
-   INPUTS & DROPDOWNS
-   ================================ */
 body.dark .inventory-search,
 body.dark .inventory-dropdown,
 body.dark input,
@@ -90,9 +78,6 @@ body.dark select {
   border: 1px solid #333;
 }
 
-/* ================================
-   BUTTONS
-   ================================ */
 body.dark .add-btn {
   background-color: #333;
   color: #fff;
@@ -122,9 +107,7 @@ body.dark .sold-btn:hover {
   background-color: #1e40af;
 }
 
-/* ================================
-   MODAL
-   ================================ */
+
 body.dark .modal-content {
   background: #1a1a1a;
   color: #f3f3f3;
@@ -142,9 +125,6 @@ body.dark .close-btn:hover {
   color: #fff;
 }
 
-/* ================================
-   CHART SECTION
-   ================================ */
 .chart-section {
   background-color: #f4f4f4;
   padding: 1.5rem;
@@ -158,9 +138,6 @@ body.dark .chart-section {
   color: #ccc;
 }
 
-/* ================================
-   TOOLTIP
-   ================================ */
 .recharts-tooltip-wrapper {
   font-size: 0.9rem;
 }
@@ -179,9 +156,6 @@ body.dark .recharts-tooltip-wrapper .recharts-default-tooltip {
   --tooltip-text: #fff;
 }
 
-/* ================================
-   TRANSITIONS
-   ================================ */
 .inventory-container,
 .inventory-card,
 .inventory-row,

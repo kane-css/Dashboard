@@ -10,7 +10,7 @@ export default function AdminManageShop() {
   const [showArchives, setShowArchives] = useState(false);
   const [archivedParts, setArchivedParts] = useState([]);
 
-  // ✅ Logout Confirmation
+  
   const handleLogout = () => {
     Swal.fire({
       title: "Are you sure?",
@@ -32,7 +32,7 @@ export default function AdminManageShop() {
     });
   };
 
-  // ✅ Fetch Archived Items
+  
   const fetchArchivedParts = async () => {
     const { data, error } = await supabase
       .from("inventory_parts")
@@ -45,7 +45,7 @@ export default function AdminManageShop() {
     }
   };
 
-  // ✅ When modal opens, load archived items
+  
   useEffect(() => {
     if (showArchives) fetchArchivedParts();
   }, [showArchives]);
@@ -109,7 +109,7 @@ export default function AdminManageShop() {
         </button>
       </div>
 
-      {/* ✅ Archives Modal */}
+      {/* Archives Modal */}
       {showArchives && (
         <div className="modal-overlay">
           <div className="modal-content">
