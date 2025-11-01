@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import "../ownercss/AccountSettings.css";
 import { supabase } from "../../supabase";
-import qrImage from '../assets/qr.png';
+import qrImage from '../../assets/Modifikasi.png';
+
 
 export default function AccountSettings() {
   const [showManageModal, setShowManageModal] = useState(false);
@@ -292,10 +293,9 @@ export default function AccountSettings() {
           <div className="modal-box qr-modal">
             <h2>Download App QR Code</h2>
             <div style={{ textAlign: "center", marginTop: "20px" }}>
+             <img src={qrImage} alt="App QR Code" className="qr-image" />
 
-
-<img src={qrImage} alt="App QR Code" />
-
+              
               <p style={{ marginTop: "10px", fontSize: "14px" }}>
                 Scan this QR code to download the Modifikasi App.
               </p>
