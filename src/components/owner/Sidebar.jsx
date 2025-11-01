@@ -26,7 +26,7 @@ export default function OwnerSidebar({ isDark, toggleDarkMode }) {
       {/* Top Section */}
       <div className="profile-section">
         <FaUser className="profile-icon" />
-        <h2 className="owner-logo">Owner</h2>
+        <h2 className="owner-logo">Admin</h2>
       </div>
 
       {/* Nav Sections */}

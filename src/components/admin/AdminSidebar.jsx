@@ -27,7 +27,7 @@ export default function AdminSidebar({ isDark, toggleDarkMode }) {
       {/*  Profile section */}
       <div className="profile-section">
         <FaUser className="profile-icon" />
-        <h2 className="admin-logo">Admin</h2>
+        <h2 className="admin-logo">Owner</h2>
       </div>
 
       {/*  Navigation section */}

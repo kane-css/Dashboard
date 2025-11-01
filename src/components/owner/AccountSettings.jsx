@@ -7,6 +7,7 @@ import { supabase } from "../../supabase";
 export default function AccountSettings() {
   const [showManageModal, setShowManageModal] = useState(false);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
   const [users, setUsers] = useState([]);
   const [archives, setArchives] = useState([]);
   const navigate = useNavigate();
@@ -118,7 +119,6 @@ export default function AccountSettings() {
     }
   };
 
-  
   const handleLogoutConfirm = () => {
     const isDarkMode = document.body.classList.contains("dark");
 
@@ -175,18 +175,17 @@ export default function AccountSettings() {
       <h1>Settings</h1>
 
       <div className="settings-buttons">
-        <button
-          className="btn-manage"
-          onClick={() => setShowManageModal(true)}
-        >
+        <button className="btn-manage" onClick={() => setShowManageModal(true)}>
           Manage User Access
         </button>
 
-        <button
-          className="btn-archives"
-          onClick={() => setShowArchiveModal(true)}
-        >
+        <button className="btn-archives" onClick={() => setShowArchiveModal(true)}>
           View Archives
+        </button>
+
+        {/* 🔹 New QR Code Button */}
+        <button className="btn-archives" onClick={() => setShowQRModal(true)}>
+          Download App QR Code
         </button>
 
         <button className="btn-logout" onClick={handleLogoutConfirm}>
@@ -204,41 +203,23 @@ export default function AccountSettings() {
                 {users.map((user) => (
                   <li key={user.id}>
                     <div className="user-info">
-                      <strong>{user.username}</strong> — <span>{user.role}</span>{" "}
-                      —{" "}
-                      <span className={`status-badge ${user.status}`}>
-                        {user.status}
-                      </span>
+                      <strong>{user.username}</strong> — <span>{user.role}</span> —{" "}
+                      <span className={`status-badge ${user.status}`}>{user.status}</span>
                     </div>
                     <div className="actions">
-                      <button
-                        className="btn-admin"
-                        onClick={() => approveAsAdmin(user.id)}
-                      >
+                      <button className="btn-admin" onClick={() => approveAsAdmin(user.id)}>
                         Approve as Admin
                       </button>
-                      <button
-                        className="btn-owner"
-                        onClick={() => approveAsOwner(user.id)}
-                      >
+                      <button className="btn-owner" onClick={() => approveAsOwner(user.id)}>
                         Approve as Owner
                       </button>
-                      <button
-                        className="btn-deny"
-                        onClick={() => denyAccount(user.id)}
-                      >
+                      <button className="btn-deny" onClick={() => denyAccount(user.id)}>
                         Deny
                       </button>
-                      <button
-                        className="btn-status"
-                        onClick={() => toggleStatus(user.id, user.status)}
-                      >
+                      <button className="btn-status" onClick={() => toggleStatus(user.id, user.status)}>
                         {user.status === "active" ? "Suspend" : "Reactivate"}
                       </button>
-                      <button
-                        className="btn-delete"
-                        onClick={() => deleteUser(user.id)}
-                      >
+                      <button className="btn-delete" onClick={() => deleteUser(user.id)}>
                         Delete
                       </button>
                     </div>
@@ -246,10 +227,7 @@ export default function AccountSettings() {
                 ))}
               </ul>
             </div>
-            <button
-              className="close-button"
-              onClick={() => setShowManageModal(false)}
-            >
+            <button className="close-button" onClick={() => setShowManageModal(false)}>
               Close
             </button>
           </div>
@@ -300,10 +278,29 @@ export default function AccountSettings() {
                 </tbody>
               </table>
             )}
-            <button
-              className="close-button"
-              onClick={() => setShowArchiveModal(false)}
-            >
+            <button className="close-button" onClick={() => setShowArchiveModal(false)}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* QR Code Modal */}
+      {showQRModal && (
+        <div className="modal-overlay">
+          <div className="modal-box qr-modal">
+            <h2>Download App QR Code</h2>
+            <div style={{ textAlign: "center", marginTop: "20px" }}>
+             <img
+                src="src\assets\Modifikasi.png"
+                alt="App QR Code"
+                className="qr-image"
+              />
+              <p style={{ marginTop: "10px", fontSize: "14px" }}>
+                Scan this QR code to download the Modifikasi App.
+              </p>
+            </div>
+            <button className="close-button" onClick={() => setShowQRModal(false)}>
               Close
             </button>
           </div>
